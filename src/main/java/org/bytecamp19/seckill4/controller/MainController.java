@@ -66,12 +66,12 @@ public class MainController {
     }
 
     @GetMapping("result")
-    public HashMap<String, Object> getResult() throws ForbiddenException {
+    public JSONObject getResult() throws ForbiddenException {
         return null;
     }
 
     @PostMapping("reset")
-    public HashMap<String, Object> reset() throws ForbiddenException {
+    public JSONObject reset() throws ForbiddenException {
         return null;
     }
 }
