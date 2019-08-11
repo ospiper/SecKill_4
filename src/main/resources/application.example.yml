@@ -20,3 +20,5 @@ logging:
   level:
     org.bytecamp19.seckill4.mapper: debug
 
+app:
+  debug: true
