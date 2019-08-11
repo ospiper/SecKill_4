@@ -1,5 +1,6 @@
 package org.bytecamp19.seckill4.error;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -38,6 +39,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             ForbiddenException ex) {
         ApiError err = new ApiError(HttpStatus.FORBIDDEN);
         err.setMessage(ex.getMessage());
+        if (printStack) ex.printStackTrace();
         return buildResponseEntity(err);
     }
 
@@ -45,6 +47,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleException(Exception ex) {
         ApiError err = new ApiError(HttpStatus.FORBIDDEN);
         err.setMessage(ex.getMessage());
+        if (printStack) ex.printStackTrace();
         return buildResponseEntity(err);
     }
 

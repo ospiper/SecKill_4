@@ -7,7 +7,7 @@ import lombok.ToString;
  * Copyright (c) 2019 L. Xiao, F. Baoren, L. Yangzhou. All rights reserved.
  */
 @ToString
-public class ForbiddenException extends Throwable {
+public class ForbiddenException extends Exception {
     public ForbiddenException(String message) {
         super(message);
     }
