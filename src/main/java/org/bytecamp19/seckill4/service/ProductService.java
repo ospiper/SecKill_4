@@ -16,6 +16,6 @@ public class ProductService {
     private ProductMapper productMapper;
 
     public Product getProduct(int pid) {
-        return new Product();
+        return productMapper.selectById(pid);
     }
 }
