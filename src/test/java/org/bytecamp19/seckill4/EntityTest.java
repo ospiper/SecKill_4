@@ -25,7 +25,10 @@ public class EntityTest {
 
     @Test
     public void testSessionSelect() {
-        assertEquals(sessionMapper.selectById("ab5c53d8e094263412ffdfe524ddba0d").getUid(), 175230);
+        String sid = "ab5c53d8e094263412ffdfe524ddba0d";
+        Session s = sessionMapper.selectById(sid);
+        assertEquals(s.getUid(), 175230);
+        assertEquals(s.getSessionid(), sid);
     }
 
     @Test
