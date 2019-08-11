@@ -1,14 +1,15 @@
 package org.bytecamp19.seckill4.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.ibatis.annotations.Param;
+import org.bytecamp19.seckill4.entity.Order;
 import org.bytecamp19.seckill4.entity.Product;
 import org.bytecamp19.seckill4.error.ForbiddenException;
+import org.bytecamp19.seckill4.service.OrderService;
 import org.bytecamp19.seckill4.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
@@ -23,6 +24,8 @@ public class MainController {
 
     @Autowired
     private ProductService productService;
+    @Autowired
+    private OrderService orderService;
 
     @GetMapping("product")
     public Product getProduct(@Param("pid") Integer pid) throws ForbiddenException {
@@ -38,8 +41,23 @@ public class MainController {
     }
 
     @PostMapping("order")
-    public HashMap<String, Object> placeOrder() throws ForbiddenException {
-        return null;
+    public JSONObject placeOrder(@RequestBody JSONObject json) throws ForbiddenException {
+        Integer pid = json.getInteger("pid");
+        Integer uid = json.getInteger("uid");
+        if (uid == null || pid == null) {
+            throw new ForbiddenException("pid or uid not given");
+        }
+        // Place an order
+        Order order = orderService.placeOrder(pid, uid);
+        // Returns null if there is no remaining products
+        JSONObject ret = new JSONObject();
+        if (order == null) {
+            ret.put("code", 1);
+            return ret;
+        }
+        ret.put("code", 0);
+        ret.put("order_id", order.getOrder_id());
+        return ret;
     }
 
     @PostMapping("pay")
