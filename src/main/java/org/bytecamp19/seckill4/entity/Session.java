@@ -12,8 +12,8 @@ import lombok.Data;
 @TableName("sessions")
 public class Session {
     @TableId
-    private int uid;
     private String sessionid;
+    private int uid;
 
     @Override
     public String toString() {
