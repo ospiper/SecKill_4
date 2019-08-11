@@ -24,6 +24,14 @@ public class EntityTest {
     private ProductMapper productMapper;
 
     @Test
+    public void testSessionSelect() {
+        String sid = "ab5c53d8e094263412ffdfe524ddba0d";
+        Session s = sessionMapper.selectById(sid);
+        assertEquals(s.getUid(), 175230);
+        assertEquals(s.getSessionid(), sid);
+    }
+
+    @Test
     public void testSessionCount() {
         assertEquals(sessionMapper.selectCount(null).intValue(), 5000000);
     }

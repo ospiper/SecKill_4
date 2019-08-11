@@ -1,0 +1,26 @@
+### postgresql config ###
+spring:
+  datasource:
+    url: jdbc:DATABASE_URI_HERE
+    username: postgres
+    password:
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 15
+      auto-commit: true
+      idle-timeout: 30000
+      pool-name: DatebookHikariCP
+      max-lifetime: 900000
+      connection-timeout: 15000
+      connection-test-query: SELECT 1
+
+## Remember to turn off after testing
+logging:
+  level:
+    org.bytecamp19.seckill4.mapper: debug
+
+app:
+  debug:
+    enabled: true
+    printStack: false
