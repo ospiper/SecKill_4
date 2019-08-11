@@ -1,5 +1,6 @@
 package org.bytecamp19.seckill4.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -10,6 +11,7 @@ import lombok.Data;
 @Data
 @TableName("orders")
 public class Order {
+    @TableId
     private String order_id;
     private int uid;
     private int pid;

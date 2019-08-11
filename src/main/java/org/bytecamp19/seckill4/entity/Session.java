@@ -1,5 +1,6 @@
 package org.bytecamp19.seckill4.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -10,6 +11,7 @@ import lombok.Data;
 @Data
 @TableName("sessions")
 public class Session {
+    @TableId
     private int uid;
     private String sessionid;
 
