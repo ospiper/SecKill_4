@@ -1,4 +1,4 @@
-package org.bytecamp19.seckill4;
+package org.bytecamp19.seckill4.controller;
 
 import org.bytecamp19.seckill4.entity.Product;
 import org.bytecamp19.seckill4.service.ProductService;
@@ -8,8 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by LLAP on 2019/8/4.
