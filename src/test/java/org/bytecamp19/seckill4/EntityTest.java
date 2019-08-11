@@ -24,6 +24,11 @@ public class EntityTest {
     private ProductMapper productMapper;
 
     @Test
+    public void testSessionSelect() {
+        assertEquals(sessionMapper.selectById("ab5c53d8e094263412ffdfe524ddba0d").getUid(), 175230);
+    }
+
+    @Test
     public void testSessionCount() {
         assertEquals(sessionMapper.selectCount(null).intValue(), 5000000);
     }
