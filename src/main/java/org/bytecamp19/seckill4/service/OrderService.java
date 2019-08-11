@@ -1,9 +1,11 @@
 package org.bytecamp19.seckill4.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import org.bytecamp19.seckill4.entity.Order;
+import org.bytecamp19.seckill4.entity.Product;
+import org.bytecamp19.seckill4.error.ForbiddenException;
 import org.bytecamp19.seckill4.mapper.OrderMapper;
-import org.bytecamp19.seckill4.mapper.ProductMapper;
-import org.bytecamp19.seckill4.mapper.SessionMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,15 +20,10 @@ import java.util.Random;
 public class OrderService {
     @Value("${app.debug.enabled}")
     private boolean debug;
-
     @Autowired
-    private ProductMapper productMapper;
-
+    private ProductService productService;
     @Autowired
     private OrderMapper orderMapper;
-
-    @Autowired
-    private SessionMapper sessionMapper;
 
     private static Random random = new Random();
 
@@ -103,9 +100,26 @@ public class OrderService {
         return r_pid;
     }
 
-    public Order placeOrder(int pid, int uid) {
+    public Order placeOrder(int uid, Product p) throws ForbiddenException {
+        // Check duplicated order
+        Order preOrder = orderMapper.selectOne(new QueryWrapper<Order>()
+                .eq("uid", uid)
+                .eq("pid", p.getPid()));
+        if (preOrder != null) {
+            throw new ForbiddenException("Duplicate order (uid, pid)");
+        }
+        // TODO: update inventory
 
-        return null;
+        // Create order
+        String orderId = generateOrderId(p.getPid(), uid, p.getPrice());
+        Order order = new Order();
+        order.setOrder_id(orderId);
+        order.setPid(p.getPid());
+        order.setPrice(p.getPrice());
+        order.setUid(uid);
+        int rowCount = orderMapper.insert(order);
+        if (rowCount != 1) throw new ForbiddenException("Cannot place order");
+        return order;
     }
 
     public Order payOrder(String orderId) {
