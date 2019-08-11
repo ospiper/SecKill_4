@@ -16,7 +16,7 @@ import java.util.Random;
  */
 @Service
 public class OrderService {
-    @Value("${app.debug}")
+    @Value("${app.debug.enabled}")
     private boolean debug;
 
     @Autowired

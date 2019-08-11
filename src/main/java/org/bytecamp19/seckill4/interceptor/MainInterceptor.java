@@ -19,6 +19,8 @@ public class MainInterceptor implements HandlerInterceptor {
     private static final Pattern ipv4 = Pattern.compile("^((\\d|[1-9]\\d|1\\d\\d|2([0-4]\\d|5[0-5]))\\.){4}$");
     private static final Pattern ipv6 = Pattern.compile("^(([\\da-fA-F]{1,4}):){8}$");
     private static final Pattern md5 = Pattern.compile("^([a-fA-F0-9]{32})$");
+    @Value("${app.debug.enabled}")
+    private boolean debug;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {

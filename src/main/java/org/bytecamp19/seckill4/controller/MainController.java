@@ -21,7 +21,10 @@ import java.util.*;
 @RestController
 @RequestMapping("/")
 public class MainController {
-
+    @Value("${app.debug.enabled}")
+    private boolean debug;
+    @Autowired
+    private SessionService sessionService;
     @Autowired
     private ProductService productService;
     @Autowired

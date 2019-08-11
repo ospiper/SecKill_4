@@ -11,7 +11,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class ProductService {
-
+    @Value("${app.debug.enabled}")
+    private boolean debug;
     @Autowired
     private ProductMapper productMapper;
 

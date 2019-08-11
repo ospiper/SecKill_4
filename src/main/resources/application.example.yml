@@ -21,4 +21,6 @@ logging:
     org.bytecamp19.seckill4.mapper: debug
 
 app:
-  debug: true
+  debug:
+    enabled: true
+    printStack: false
