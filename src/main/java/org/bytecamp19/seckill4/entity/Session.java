@@ -1,9 +1,12 @@
 package org.bytecamp19.seckill4.entity;
 
+import lombok.Data;
+
 /**
  * Created by LLAP on 2019/8/5.
  * Copyright (c) 2019 L. Xiao, F. Baoren, L. Yangzhou. All rights reserved.
  */
+@Data
 public class Session {
     private int uid;
     private String sessionid;
@@ -16,19 +19,4 @@ public class Session {
                 '}';
     }
 
-    public int getUid() {
-        return uid;
-    }
-
-    public void setUid(int uid) {
-        this.uid = uid;
-    }
-
-    public String getSessionid() {
-        return sessionid;
-    }
-
-    public void setSessionid(String sessionid) {
-        this.sessionid = sessionid;
-    }
 }
