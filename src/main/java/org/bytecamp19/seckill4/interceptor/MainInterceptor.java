@@ -1,5 +1,6 @@
 package org.bytecamp19.seckill4.interceptor;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -27,11 +28,14 @@ public class MainInterceptor implements HandlerInterceptor {
         String ip = request.getHeader("x-forwarded-for");
         String ua = request.getHeader("user-agent");
         String sessionid = request.getHeader("sessionid");
-        System.out.println("Prehandling " + request.getRequestURI());
-        printHeaders(ip, ua, sessionid);
+        if (debug) {
+            System.out.println("Prehandling " + request.getRequestURI());
+            printHeaders(ip, ua, sessionid);
+        }
+
         // Check headers
         if (ip == null || ua == null || sessionid == null) {
-            System.err.println("IP / UA / SessionId not found");
+            if (debug) System.err.println("IP / UA / SessionId not found");
             response.setStatus(403);
             return false;
         }
@@ -41,7 +45,7 @@ public class MainInterceptor implements HandlerInterceptor {
         if (!v4Match.matches()) {
             Matcher v6Match = ipv6.matcher(ip + ":");
             if (!v6Match.matches()) {
-                System.err.println("IP is neither v4 nor v6");
+                if (debug) System.err.println("IP is neither v4 nor v6");
                 response.setStatus(403);
                 return false;
             }
@@ -53,20 +57,20 @@ public class MainInterceptor implements HandlerInterceptor {
         if (uan.contains("curl")
                 || uan.contains("spider")
                 || uan.contains("wget")) {
-            System.err.println("UA blocked");
+            if (debug) System.err.println("UA blocked");
             response.setStatus(403);
             return false;
         }
 
         // Check session format
         if (sessionid.length() != 32) {
-            System.err.println("Wrong sessionid format");
+            if (debug) System.err.println("Wrong sessionid format");
             response.setStatus(403);
             return false;
         }
         Matcher md5Match = md5.matcher(sessionid);
         if (!md5Match.matches()) {
-            System.err.println("Wrong md5 format");
+            if (debug) System.err.println("Wrong md5 format");
             response.setStatus(403);
             return false;
         }
