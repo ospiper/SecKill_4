@@ -1,8 +1,8 @@
 package org.bytecamp19.seckill4.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.ibatis.annotations.Param;
+import org.bytecamp19.seckill4.entity.OrderResult;
 import org.bytecamp19.seckill4.entity.Order;
 import org.bytecamp19.seckill4.entity.Product;
 import org.bytecamp19.seckill4.entity.Session;
@@ -106,12 +106,30 @@ public class MainController {
     }
 
     @GetMapping("result")
-    public JSONObject getResult() throws ForbiddenException {
-        return null;
+    public JSONObject getResult(@Param("uid") Integer uid) throws ForbiddenException {
+        if (uid == null){
+            throw new ForbiddenException("uid not given");
+        }
+        JSONObject ret = new JSONObject();
+        List<OrderResult> data = orderService.getOrdersByUid(uid);
+        ret.put("data", data);
+
+        return ret;
     }
 
     @PostMapping("reset")
-    public JSONObject reset() throws ForbiddenException {
-        return null;
+    public JSONObject reset(@Param("token") String token) throws ForbiddenException {
+        if (token == null){
+            throw new ForbiddenException("token not given");
+        }
+        JSONObject ret = new JSONObject();
+        // TODO checkToken()还没有实现
+//        if (checkToken(token)){
+//            ret.put("code", 0);
+//        } else {
+//            ret.put("code", 1);
+//        }
+        ret.put("code", 0);
+        return ret;
     }
 }
