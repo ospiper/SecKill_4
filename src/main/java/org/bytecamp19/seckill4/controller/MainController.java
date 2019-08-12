@@ -27,6 +27,8 @@ import java.util.*;
 public class MainController {
     @Value("${app.debug.enabled}")
     private boolean debug;
+    @Value("${app.resetToken}")
+    private String resetToken;
     @Autowired
     private SessionService sessionService;
     @Autowired
@@ -123,13 +125,12 @@ public class MainController {
             throw new ForbiddenException("token not given");
         }
         JSONObject ret = new JSONObject();
-        // TODO checkToken()还没有实现
-//        if (checkToken(token)){
-//            ret.put("code", 0);
-//        } else {
-//            ret.put("code", 1);
-//        }
-        ret.put("code", 0);
+        // TODO reset()还没有实现
+        if (token.equals(resetToken)){
+            ret.put("code", 0);
+        } else {
+            ret.put("code", 1);
+        }
         return ret;
     }
 }

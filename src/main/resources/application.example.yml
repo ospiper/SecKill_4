@@ -24,3 +24,4 @@ app:
   debug:
     enabled: true
     printStack: false
+  resetToken: RESET_TOKEN_HERE
