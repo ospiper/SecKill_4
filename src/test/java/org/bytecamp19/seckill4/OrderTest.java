@@ -1,5 +1,7 @@
 package org.bytecamp19.seckill4;
 
+import lombok.Data;
+import lombok.Getter;
 import org.bytecamp19.seckill4.controller.MainController;
 import org.bytecamp19.seckill4.service.OrderService;
 import org.junit.Test;
@@ -21,6 +23,27 @@ public class OrderTest {
     private MainController mainController;
     @Autowired
     private OrderService orderService;
+    private static boolean debug = true;
+
+    @Data
+    @Getter
+    private static class OrderId {
+        private final String orderId;
+        private final long timestamp;
+        private final int uid;
+        private final int pid;
+        private final int rand;
+        private final int check;
+        public OrderId(String orderId) {
+            this.orderId = orderId;
+            String[] segments = orderId.split("\\.");
+            timestamp = Long.parseLong(segments[0]);
+            uid = Integer.parseInt(segments[1]);
+            pid = Integer.parseInt(segments[2]);
+            rand = Integer.parseInt(segments[3]);
+            check = Integer.parseInt(segments[4]);
+        }
+    }
 
     @Test
     public void testOrderIdGeneration() {
