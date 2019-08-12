@@ -1,7 +1,7 @@
 package org.bytecamp19.seckill4.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import org.bytecamp19.seckill4.entity.OrderResult;
 import org.bytecamp19.seckill4.entity.Order;
 import org.bytecamp19.seckill4.entity.Product;
 import org.bytecamp19.seckill4.error.ForbiddenException;
@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -125,5 +126,9 @@ public class OrderService {
     public Order payOrder(String orderId) {
 
         return null;
+    }
+
+    public List<OrderResult> getOrdersByUid(int uid){
+        return orderMapper.getOrdersByUid(uid);
     }
 }
