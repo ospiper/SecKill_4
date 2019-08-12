@@ -50,15 +50,17 @@ public class MainController {
     }
 
     @PostMapping("order")
-    public JSONObject placeOrder(@RequestBody JSONObject json, HttpServletRequest request) throws ForbiddenException {
+    public JSONObject placeOrder(@RequestBody JSONObject json,
+                                 @RequestHeader("sessionid") String sessionId)
+            throws ForbiddenException {
         Integer pid = json.getInteger("pid");
         Integer uid = json.getInteger("uid");
-        if (uid == null || pid == null) {
-            throw new ForbiddenException("pid or uid not given");
+        if (uid == null || pid == null || sessionId == null || sessionId.isEmpty()) {
+            throw new ForbiddenException("pid / uid / session not given");
         }
 
         // Check session
-        Session session = sessionService.getSession(request.getHeader("sessionid"), uid);
+        Session session = sessionService.getSession(sessionId, uid);
         if (debug) {
             System.out.println("pid = " + pid);
             System.out.println("uid = " + uid);
@@ -92,7 +94,9 @@ public class MainController {
     }
 
     @PostMapping("pay")
-    public JSONObject payOrder(@RequestBody JSONObject json) throws ForbiddenException {
+    public JSONObject payOrder(@RequestBody JSONObject json,
+                               @RequestHeader("sessionid") String sessionId)
+            throws ForbiddenException {
         Integer uid = json.getInteger("uid");
         Integer price = json.getInteger("price");
         String orderId = json.getString("order_id");
@@ -103,19 +107,21 @@ public class MainController {
         if (pid < 0) {
             throw new ForbiddenException("Invalid order_id");
         }
-
+        // TODO: validate session
         return null;
     }
 
     @GetMapping("result")
-    public JSONObject getResult(@Param("uid") Integer uid) throws ForbiddenException {
+    public JSONObject getResult(@Param("uid") Integer uid,
+                                @RequestHeader("sessionid") String sessionId)
+            throws ForbiddenException {
         if (uid == null){
             throw new ForbiddenException("uid not given");
         }
         JSONObject ret = new JSONObject();
         List<OrderResult> data = orderService.getOrdersByUid(uid);
         ret.put("data", data);
-
+        // TODO: validate session
         return ret;
     }
 
