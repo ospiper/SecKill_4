@@ -14,13 +14,36 @@ spring:
       max-lifetime: 900000
       connection-timeout: 15000
       connection-test-query: SELECT 1
+  redis:
+    database: 0
+    host: container.ll-ap.cn
+    port: 6379
+    password:
+    timeout: 1000
+    lettuce:
+      pool:
+        max-wait: 1
+        max-idle: 8
+        max-active: 15
+        min-idle: 0
+    cache:
+      cache-names:
+        - productCache
+        - orderCache
+      multi:
+        caffeine:
+          expireAfterAccess: 10000
+        redis:
+          defaultExpiration: 60000
 
 ## Remember to turn off after testing
 logging:
   level:
     org.bytecamp19.seckill4.mapper: debug
+    org.bytecamp19.seckill4.cache: debug
 
 app:
   debug:
     enabled: true
     printStack: false
+  resetToken: 123456
