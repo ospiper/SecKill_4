@@ -10,6 +10,8 @@ import org.bytecamp19.seckill4.error.ForbiddenException;
 import org.bytecamp19.seckill4.service.OrderService;
 import org.bytecamp19.seckill4.service.ProductService;
 import org.bytecamp19.seckill4.service.SessionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -25,8 +27,7 @@ import java.util.*;
 @RestController
 @RequestMapping("/")
 public class MainController {
-    @Value("${app.debug.enabled}")
-    private boolean debug;
+    private Logger logger = LoggerFactory.getLogger(MainController.class);
     @Value("${app.resetToken}")
     private String resetToken;
     @Autowired
@@ -42,10 +43,10 @@ public class MainController {
             throw new ForbiddenException("pid not given");
         }
         Product ret = productService.getProduct(pid);
-        System.out.println(ret);
         if (ret == null) {
             throw new ForbiddenException("Product not found");
         }
+        logger.debug(ret.toString());
         return ret;
     }
 
@@ -61,20 +62,16 @@ public class MainController {
 
         // Check session
         Session session = sessionService.getSession(sessionId, uid);
-        if (debug) {
-            System.out.println("pid = " + pid);
-            System.out.println("uid = " + uid);
-            System.out.println("session = " + session);
-        }
+        logger.debug("pid = " + pid);
+        logger.debug("uid = " + uid);
+        logger.debug("session = " + session);
         if (session == null) {
             throw new ForbiddenException("Session not found");
         }
 
         // Check product
         Product product = productService.getProduct(pid);
-        if (debug) {
-            System.out.println("Product = " + product);
-        }
+        logger.debug("Product = " + product);
         if (product == null) {
             throw new ForbiddenException("Product not found");
         }
