@@ -46,7 +46,5 @@ logging:
     org.bytecamp19.seckill4.service: debug
 
 app:
-  debug:
-    enabled: true
-    printStack: false
+  printStackTraceOnError: true
   resetToken: 123456
