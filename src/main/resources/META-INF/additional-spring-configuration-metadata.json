@@ -1,0 +1,23 @@
+{
+  "properties": [
+    {
+      "name": "app.printStackTraceOnError",
+      "type": "java.lang.String",
+      "description": "Print stack trace on errors."
+    },
+    {
+      "name": "app.resetToken",
+      "type": "java.lang.String",
+      "description": "Reset token for testing."
+    },
+    {
+      "name": "spring.cache.multi.caffeine.expireAfterAccess",
+      "type": "java.lang.String",
+      "description": "Description for spring.cache.multi.caffeine.expireAfterAccess."
+    },
+    {
+      "name": "spring.cache.multi.redis.defaultExpiration",
+      "type": "java.lang.String",
+      "description": "Description for spring.cache.multi.redis.defaultExpiration."
+    }
+  ] }
