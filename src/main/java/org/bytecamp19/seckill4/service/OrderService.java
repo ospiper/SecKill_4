@@ -125,7 +125,10 @@ public class OrderService {
     }
 
     public Order payOrder(String orderId) {
-
+        // TODO: 问题：应该在下订单时就获取付款id，还是等到有支付请求时才获取
+        // TODO: 或者：通过uid和price可以检验order_id的合法性，所以
+        // TODO: 1. 下订单时扣减完库存直接返回订单id，把订单加入到队列里慢慢写入，写入数据库的时候直接获取到支付id
+        // TODO: 2. 支付时如果order_id合法，先查询有没有写数据，如果查询到就直接返回，如果没查询到就按照用户提交的数据发送http请求（Spring WebFlux WebClient）
         return null;
     }
 
