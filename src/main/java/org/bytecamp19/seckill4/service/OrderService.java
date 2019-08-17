@@ -110,6 +110,7 @@ public class OrderService {
             throw new ForbiddenException("Duplicate order (uid, pid)");
         }
         // TODO: update inventory
+        // TODO: 问题：应该先把库存载入缓存，直接在缓存里扣，还是在数据库锁行用事务扣减
 
         // Create order
         String orderId = generateOrderId(p.getPid(), uid, p.getPrice());
