@@ -4,13 +4,15 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
+import java.io.Serializable;
+
 /**
  * Created by LLAP on 2019/8/4.
  * Copyright (c) 2019 L. Xiao, F. Baoren, L. Yangzhou. All rights reserved.
  */
 @Data
 @TableName("products")
-public class Product {
+public class Product implements Serializable {
     @TableId
     private int pid;
     private int count;
