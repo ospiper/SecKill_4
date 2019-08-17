@@ -4,6 +4,7 @@ import org.bytecamp19.seckill4.entity.Product;
 import org.bytecamp19.seckill4.mapper.ProductMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -17,6 +18,11 @@ public class ProductService {
     @Autowired
     private ProductMapper productMapper;
 
+    @Cacheable(
+            key = "'product:' + #pid",
+            value = "productCache",
+            cacheManager = "cacheManager"
+    )
     public Product getProduct(int pid) {
         return productMapper.selectById(pid);
     }
