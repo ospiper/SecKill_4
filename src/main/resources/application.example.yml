@@ -41,6 +41,9 @@ logging:
   level:
     org.bytecamp19.seckill4.mapper: debug
     org.bytecamp19.seckill4.cache: debug
+    org.bytecamp19.seckill4.controller: debug
+    org.bytecamp19.seckill4.interceptor: debug
+    org.bytecamp19.seckill4.service: debug
 
 app:
   debug:

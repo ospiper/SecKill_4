@@ -1,5 +1,7 @@
 package org.bytecamp19.seckill4.interceptor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -20,11 +22,11 @@ public class MainInterceptor implements HandlerInterceptor {
     private static final Pattern ipv4 = Pattern.compile("^((\\d|[1-9]\\d|1\\d\\d|2([0-4]\\d|5[0-5]))\\.){4}$");
     private static final Pattern ipv6 = Pattern.compile("^(([\\da-fA-F]{1,4}):){8}$");
     private static final Pattern md5 = Pattern.compile("^([a-fA-F0-9]{32})$");
-    @Value("${app.debug.enabled}")
-    private boolean debug;
+    private Logger logger = LoggerFactory.getLogger(MainInterceptor.class);
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
+        logger.debug("Prehandling " + request.getRequestURI());
         String ip = request.getHeader("x-forwarded-for");
         String ua = request.getHeader("user-agent");
         String sessionid = request.getHeader("sessionid");
@@ -78,8 +80,8 @@ public class MainInterceptor implements HandlerInterceptor {
     }
 
     private void printHeaders(String ip, String ua, String sid) {
-        System.out.println("IP = " + ip);
-        System.out.println("UA = " + ua);
-        System.out.println("Session id = " + sid);
+        logger.debug("IP = " + ip);
+        logger.debug("UA = " + ua);
+        logger.debug("Session id = " + sid);
     }
 }

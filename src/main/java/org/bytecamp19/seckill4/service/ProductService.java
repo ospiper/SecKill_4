@@ -2,6 +2,8 @@ package org.bytecamp19.seckill4.service;
 
 import org.bytecamp19.seckill4.entity.Product;
 import org.bytecamp19.seckill4.mapper.ProductMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
@@ -13,8 +15,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class ProductService {
-    @Value("${app.debug.enabled}")
-    private boolean debug;
+    private Logger logger = LoggerFactory.getLogger(ProductService.class);
     @Autowired
     private ProductMapper productMapper;
 

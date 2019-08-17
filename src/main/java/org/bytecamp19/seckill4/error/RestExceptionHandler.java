@@ -20,10 +20,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
-    @Value("${app.debug.enabled}")
-    private boolean debug;
-    @Value("${app.debug.printStack}")
-    private boolean printStack;
+    @Value("${app.debug.printStackTraceOnError}")
+    private boolean printStackTraceOnError;
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         String error = "Malformed JSON request";
@@ -39,7 +37,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             ForbiddenException ex) {
         ApiError err = new ApiError(HttpStatus.FORBIDDEN);
         err.setMessage(ex.getMessage());
-        if (printStack) ex.printStackTrace();
+        if (printStackTraceOnError) ex.printStackTrace();
         return buildResponseEntity(err);
     }
 
@@ -47,7 +45,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleException(Exception ex) {
         ApiError err = new ApiError(HttpStatus.FORBIDDEN);
         err.setMessage(ex.getMessage());
-        if (printStack) ex.printStackTrace();
+        if (printStackTraceOnError) ex.printStackTrace();
         return buildResponseEntity(err);
     }
 
