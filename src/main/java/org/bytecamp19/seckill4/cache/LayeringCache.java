@@ -118,7 +118,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     public ValueWrapper putIfAbsent(Object key, Object value) {
         Object cacheKey = getKey(key);
         Object prevValue = null;
-        // 考虑使用分布式锁，或者将redis的setIfAbsent改为原子性操作
+        // TODO: 考虑使用分布式锁，或者将redis的setIfAbsent改为原子性操作
         synchronized (key) {
             prevValue = stringKeyRedisTemplate.opsForValue().get(cacheKey);
             if(prevValue == null) {
