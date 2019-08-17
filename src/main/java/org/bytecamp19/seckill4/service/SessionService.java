@@ -3,6 +3,8 @@ package org.bytecamp19.seckill4.service;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.bytecamp19.seckill4.entity.Session;
 import org.bytecamp19.seckill4.mapper.SessionMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -13,8 +15,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class SessionService {
-    @Value("${app.debug.enabled}")
-    private boolean debug;
+    private Logger logger = LoggerFactory.getLogger(SessionService.class);
     @Autowired
     private SessionMapper sessionMapper;
 
