@@ -1,6 +1,7 @@
 package org.bytecamp19.seckill4.cache;
 
 import com.github.benmanes.caffeine.cache.Cache;
+import org.bytecamp19.seckill4.cache.lock.RedisDistributedLock;
 import org.bytecamp19.seckill4.cache.message.CacheMessage;
 import org.bytecamp19.seckill4.config.CacheRedisCaffeineProperties;
 import org.slf4j.Logger;
@@ -118,8 +119,9 @@ public class LayeringCache extends AbstractValueAdaptingCache {
     public ValueWrapper putIfAbsent(Object key, Object value) {
         Object cacheKey = getKey(key);
         Object prevValue = null;
+        RedisDistributedLock redisLock = new RedisDistributedLock(stringKeyRedisTemplate);
         // TODO: 考虑使用分布式锁，或者将redis的setIfAbsent改为原子性操作
-        synchronized (key) {
+        if (redisLock.lock("Layer:putIfAbsent", 50, 20L)) {
             prevValue = stringKeyRedisTemplate.opsForValue().get(cacheKey);
             if(prevValue == null) {
                 long expire = getExpire();
@@ -133,6 +135,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
 
                 caffeineCache.put(key, toStoreValue(value));
             }
+            redisLock.releaseLock("Layer:putIfAbsent");
         }
         return toValueWrapper(prevValue);
     }
