@@ -81,6 +81,7 @@ public class CacheRedisCaffeineAutoConfiguration {
         };
         template.setConnectionFactory(redisConnectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
+        template.setHashKeySerializer(new StringRedisSerializer());
         template.setHashValueSerializer(serializer);
         template.setValueSerializer(serializer);
         return template;
