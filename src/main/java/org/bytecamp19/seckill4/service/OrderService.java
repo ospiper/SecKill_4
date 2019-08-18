@@ -1,6 +1,7 @@
 package org.bytecamp19.seckill4.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import org.bytecamp19.seckill4.cache.OrderLimitManager;
 import org.bytecamp19.seckill4.entity.OrderResult;
 import org.bytecamp19.seckill4.entity.Order;
 import org.bytecamp19.seckill4.entity.Product;
@@ -22,12 +23,17 @@ import java.util.Random;
 @Service
 public class OrderService {
     private Logger logger = LoggerFactory.getLogger(OrderService.class);
-    @Autowired
     private ProductService productService;
-    @Autowired
     private OrderMapper orderMapper;
+    private OrderLimitManager limitManager;
 
     private static Random random = new Random();
+
+    public OrderService(ProductService productService, OrderMapper orderMapper, OrderLimitManager limitManager) {
+        this.productService = productService;
+        this.orderMapper = orderMapper;
+        this.limitManager = limitManager;
+    }
 
     /**
      * Generate an order_id with given arguments

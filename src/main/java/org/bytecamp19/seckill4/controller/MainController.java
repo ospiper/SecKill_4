@@ -30,12 +30,15 @@ public class MainController {
     private Logger logger = LoggerFactory.getLogger(MainController.class);
     @Value("${app.resetToken}")
     private String resetToken;
-    @Autowired
     private SessionService sessionService;
-    @Autowired
     private ProductService productService;
-    @Autowired
     private OrderService orderService;
+
+    public MainController(SessionService sessionService, ProductService productService, OrderService orderService) {
+        this.sessionService = sessionService;
+        this.productService = productService;
+        this.orderService = orderService;
+    }
 
     @GetMapping("product")
     public Product getProduct(@Param("pid") Integer pid) throws ForbiddenException {
