@@ -1,6 +1,7 @@
 package org.bytecamp19.seckill4.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import org.bytecamp19.seckill4.cache.InventoryManager;
 import org.bytecamp19.seckill4.cache.OrderLimitManager;
 import org.bytecamp19.seckill4.entity.OrderResult;
 import org.bytecamp19.seckill4.entity.Order;
@@ -26,13 +27,16 @@ public class OrderService {
     private ProductService productService;
     private OrderMapper orderMapper;
     private OrderLimitManager limitManager;
+    private InventoryManager inventoryManager;
 
     private static Random random = new Random();
 
-    public OrderService(ProductService productService, OrderMapper orderMapper, OrderLimitManager limitManager) {
+    public OrderService(ProductService productService, OrderMapper orderMapper,
+                        OrderLimitManager limitManager, InventoryManager inventoryManager) {
         this.productService = productService;
         this.orderMapper = orderMapper;
         this.limitManager = limitManager;
+        this.inventoryManager = inventoryManager;
     }
 
     /**
@@ -126,10 +130,20 @@ public class OrderService {
         // TODO: 或者：通过uid和price可以检验order_id的合法性，所以
         // TODO: 1. 下订单时扣减完库存直接返回订单id，把订单加入到队列里慢慢写入，写入数据库的时候直接获取到支付id
         // TODO: 2. 支付时如果order_id合法，先查询有没有写数据，如果查询到就直接返回，如果没查询到就按照用户提交的数据发送http请求（Spring WebFlux WebClient）
+        // TODO: 3. 支付时如果没查到order，需要向队列推送一条标记，该订单已经支付过（并记录支付token），在worker写数据时查询该标记并更新数据。
         return null;
     }
 
     public List<OrderResult> getOrdersByUid(int uid){
         return orderMapper.getOrdersByUid(uid);
+    }
+
+    public void reset() {
+        // Clear inventories
+        inventoryManager.clearInventory();
+        // Clear all order limits
+        limitManager.clearLimits();
+        // TODO: 清除order数据库
+        // TODO: 清除消息队列的所有信息
     }
 }
