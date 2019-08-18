@@ -79,4 +79,15 @@ public class InventoryManager {
     public void deleteInventory(int pid) {
         hashOperations.delete(hashName, String.valueOf(pid));
     }
+
+    public Map<Object, Integer> getInventories() {
+        // ONLY FOR TESTING, DO NOT USE IT IN THE APPLICATION!
+        Map<Object, Integer> ret = new HashMap<>();
+        Set<Object> keys = hashOperations.keys(hashName);
+        if (keys == null) return ret;
+        for (Object key : keys) {
+            ret.put(key, hashOperations.get(hashName, key));
+        }
+        return ret;
+    }
 }

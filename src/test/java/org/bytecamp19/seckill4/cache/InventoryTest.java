@@ -1,12 +1,15 @@
 package org.bytecamp19.seckill4.cache;
 
 import org.bytecamp19.seckill4.cache.InventoryManager;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -23,6 +26,7 @@ public class InventoryTest {
     @Before
     public void before(){
         inventoryManager.clearInventory();
+        assert inventoryManager.getInventories().size() == 0;
     }
 
     @Test
@@ -36,5 +40,11 @@ public class InventoryTest {
         assertEquals(count, inv2);
         int inv3 = inventoryManager.decInventory(pid);
         assertEquals(inv2 - 1, inv3);
+    }
+
+    @After
+    public void after() {
+        inventoryManager.clearInventory();
+        assert inventoryManager.getInventories().size() == 0;
     }
 }
