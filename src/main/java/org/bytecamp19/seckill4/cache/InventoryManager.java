@@ -9,6 +9,8 @@ import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -19,32 +21,29 @@ import java.util.Set;
 @AutoConfigureAfter(RedisTemplate.class)
 public class InventoryManager {
     private Logger logger = LoggerFactory.getLogger(InventoryManager.class);
-    @Autowired
     private RedisTemplate<Object, Integer> stringIntegerRedisTemplate;
     private HashOperations<Object, Object, Integer> hashOperations = null;
     private static final String hashName = "inventory";
 
-    private HashOperations<Object, Object, Integer> getOps() {
-        if (hashOperations == null) {
-            hashOperations = stringIntegerRedisTemplate.opsForHash();
-        }
-        return hashOperations;
+    public InventoryManager(RedisTemplate<Object, Integer> stringIntegerRedisTemplate) {
+        this.stringIntegerRedisTemplate = stringIntegerRedisTemplate;
+        this.hashOperations = this.stringIntegerRedisTemplate.opsForHash();
     }
 
     public boolean initInventory(int pid, int count) {
-        boolean ret = getOps().putIfAbsent(hashName, String.valueOf(pid), count);
+        boolean ret = hashOperations.putIfAbsent(hashName, String.valueOf(pid), count);
         logger.info(String.valueOf(ret));
         return ret;
     }
 
 //    public int setInventory(int pid, int count) {
-//        getOps().put(hashName, String.valueOf(pid), count);
+//        hashOperations.put(hashName, String.valueOf(pid), count);
 //        return getInventory(pid);
 //    }
 
     public int getInventory(int pid) {
         logger.debug("Getting inventory for " + pid);
-        Object ret = getOps().get(hashName, String.valueOf(pid));
+        Object ret = hashOperations.get(hashName, String.valueOf(pid));
         logger.debug("Native inventory: " + ret);
         return ret == null ? -1 : (Integer)ret;
     }
@@ -62,7 +61,7 @@ public class InventoryManager {
         if (redisLock.lock(lockKey, 50, 20L)) {
             inv = getInventory(pid);
             if (inv >= 1) {
-                ret = getOps().increment(hashName, String.valueOf(pid), -1).intValue();
+                ret = hashOperations.increment(hashName, String.valueOf(pid), -1).intValue();
 //                ret = setInventory(pid, inv - 1);
             }
             else if (inv == -1) {
@@ -78,6 +77,6 @@ public class InventoryManager {
     }
 
     public void deleteInventory(int pid) {
-        getOps().delete(hashName, String.valueOf(pid));
+        hashOperations.delete(hashName, String.valueOf(pid));
     }
 }
