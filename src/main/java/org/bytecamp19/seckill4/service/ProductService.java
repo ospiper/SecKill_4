@@ -37,6 +37,25 @@ public class ProductService {
 //            cacheManager = "cacheManager"
 //    )
     public Product getProduct(int pid) {
-        return productMapper.selectById(pid);
+        Cache cache = cacheManager.getCache("productCache");
+        Product ret = null;
+        if (cache != null) {
+            Cache.ValueWrapper val = cache.get("product:" + pid);
+            if (val != null) ret = (Product)val.get();
+            // if cache misses
+            if (ret == null) {
+                ret = productMapper.selectById(pid);
+                if (ret != null) {
+                    cache.put("product:" + pid, ret);
+                }
+            }
+        }
+        // Get inventory
+        if (ret != null) {
+            int inv = inventoryManager.getInventory(pid);
+            if (inv < 0) inventoryManager.initInventory(pid, ret.getCount());
+            else ret.setCount(inv);
+        }
+        return ret;
     }
 }
