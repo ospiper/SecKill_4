@@ -6,7 +6,7 @@ import org.bytecamp19.seckill4.mapper.SessionMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,9 +16,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class SessionService {
     private Logger logger = LoggerFactory.getLogger(SessionService.class);
-    @Autowired
+
     private SessionMapper sessionMapper;
 
+    public SessionService(SessionMapper sessionMapper) {
+        this.sessionMapper = sessionMapper;
+    }
+
+    @Cacheable(
+            key = "'session:' + #sessionid",
+            value = "sessionCache",
+            cacheManager = "cacheManager"
+    )
     public Session getSession(String sessionid, int uid) {
         return sessionMapper.selectOne(
                 new QueryWrapper<Session>()

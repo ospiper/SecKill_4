@@ -2,21 +2,17 @@ package org.bytecamp19.seckill4.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import org.apache.ibatis.annotations.Param;
-import org.bytecamp19.seckill4.entity.OrderResult;
-import org.bytecamp19.seckill4.entity.Order;
-import org.bytecamp19.seckill4.entity.Product;
-import org.bytecamp19.seckill4.entity.Session;
+import org.bytecamp19.seckill4.cache.OrderMessage;
+import org.bytecamp19.seckill4.entity.*;
 import org.bytecamp19.seckill4.error.ForbiddenException;
 import org.bytecamp19.seckill4.service.OrderService;
 import org.bytecamp19.seckill4.service.ProductService;
 import org.bytecamp19.seckill4.service.SessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 /**
@@ -30,12 +26,15 @@ public class MainController {
     private Logger logger = LoggerFactory.getLogger(MainController.class);
     @Value("${app.resetToken}")
     private String resetToken;
-    @Autowired
     private SessionService sessionService;
-    @Autowired
     private ProductService productService;
-    @Autowired
     private OrderService orderService;
+
+    public MainController(SessionService sessionService, ProductService productService, OrderService orderService) {
+        this.sessionService = sessionService;
+        this.productService = productService;
+        this.orderService = orderService;
+    }
 
     @GetMapping("product")
     public Product getProduct(@Param("pid") Integer pid) throws ForbiddenException {
@@ -77,7 +76,7 @@ public class MainController {
         }
 
         // Place an order
-        Order order = orderService.placeOrder(uid, product);
+        OrderMessage order = orderService.placeOrder(uid, product);
         // Returns null if there is no remaining products
 
         JSONObject ret = new JSONObject();
@@ -100,12 +99,26 @@ public class MainController {
         if (uid == null || price == null || orderId == null) {
             throw new ForbiddenException("pid / price / order_id not given");
         }
-        int pid = orderService.validateOrderId(orderId, uid, price);
-        if (pid < 0) {
+        OrderIdWrapper id = orderService.validateOrderId(orderId, uid, price);
+        if (id == null) {
             throw new ForbiddenException("Invalid order_id");
         }
         // TODO: validate session
-        return null;
+        Order o = orderService.payOrder(id);
+        JSONObject ret = new JSONObject();
+        if (o != null) {
+            if (o.getStatus() == Order.PAID) {
+                ret.put("code", 0);
+                ret.put("token", o.getToken());
+            }
+            else {
+                ret.put("code", 1);
+            }
+        }
+        else {
+            ret.put("code", 1);
+        }
+        return ret;
     }
 
     @GetMapping("result")

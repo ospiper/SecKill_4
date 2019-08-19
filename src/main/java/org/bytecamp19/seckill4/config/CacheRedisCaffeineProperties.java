@@ -1,5 +1,6 @@
 package org.bytecamp19.seckill4.config;
 
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.util.HashMap;
@@ -29,6 +30,7 @@ public class CacheRedisCaffeineProperties {
 
     private Caffeine caffeine = new Caffeine();
 
+    @Data
     public class Redis {
 
         /** 全局过期时间，单位毫秒，默认不过期*/
@@ -39,33 +41,9 @@ public class CacheRedisCaffeineProperties {
 
         /** 缓存更新时通知其他节点的topic名称*/
         private String topic = "cache:redis:caffeine:topic";
-
-        public long getDefaultExpiration() {
-            return defaultExpiration;
-        }
-
-        public void setDefaultExpiration(long defaultExpiration) {
-            this.defaultExpiration = defaultExpiration;
-        }
-
-        public Map<String, Long> getExpires() {
-            return expires;
-        }
-
-        public void setExpires(Map<String, Long> expires) {
-            this.expires = expires;
-        }
-
-        public String getTopic() {
-            return topic;
-        }
-
-        public void setTopic(String topic) {
-            this.topic = topic;
-        }
-
     }
 
+    @Data
     public class Caffeine {
 
         /** 访问后过期时间，单位毫秒*/
@@ -82,46 +60,6 @@ public class CacheRedisCaffeineProperties {
 
         /** 最大缓存对象个数，超过此数量时之前放入的缓存将失效*/
         private long maximumSize;
-
-        public long getExpireAfterAccess() {
-            return expireAfterAccess;
-        }
-
-        public void setExpireAfterAccess(long expireAfterAccess) {
-            this.expireAfterAccess = expireAfterAccess;
-        }
-
-        public long getExpireAfterWrite() {
-            return expireAfterWrite;
-        }
-
-        public void setExpireAfterWrite(long expireAfterWrite) {
-            this.expireAfterWrite = expireAfterWrite;
-        }
-
-        public long getRefreshAfterWrite() {
-            return refreshAfterWrite;
-        }
-
-        public void setRefreshAfterWrite(long refreshAfterWrite) {
-            this.refreshAfterWrite = refreshAfterWrite;
-        }
-
-        public int getInitialCapacity() {
-            return initialCapacity;
-        }
-
-        public void setInitialCapacity(int initialCapacity) {
-            this.initialCapacity = initialCapacity;
-        }
-
-        public long getMaximumSize() {
-            return maximumSize;
-        }
-
-        public void setMaximumSize(long maximumSize) {
-            this.maximumSize = maximumSize;
-        }
     }
 
     public Set<String> getCacheNames() {
