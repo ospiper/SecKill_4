@@ -65,6 +65,12 @@ public class CacheRedisCaffeineAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean(name = "stringRedisTemplate")
+    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+        return new StringRedisTemplate(redisConnectionFactory);
+    }
+
+    @Bean
     @ConditionalOnMissingBean(name = "stringIntegerRedisTemplate")
     public RedisTemplate<Object, Integer> stringIntegerRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
         RedisTemplate<Object, Integer> template = new RedisTemplate<>();
