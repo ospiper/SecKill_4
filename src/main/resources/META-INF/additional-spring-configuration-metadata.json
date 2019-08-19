@@ -3,7 +3,7 @@
     {
       "name": "app.printStackTraceOnError",
       "type": "java.lang.String",
-      "description": "Print stack trace on errors."
+      "description": "Print stack trace when catching exceptions."
     },
     {
       "name": "app.resetToken",
@@ -19,5 +19,15 @@
       "name": "spring.cache.multi.redis.defaultExpiration",
       "type": "java.lang.String",
       "description": "Description for spring.cache.multi.redis.defaultExpiration."
+    },
+    {
+      "name": "app.tokenServer",
+      "type": "java.lang.String",
+      "description": "Server address to retrieve pay token."
+    },
+    {
+      "name": "spring.cache.multi.caffeine.maximumSize",
+      "type": "java.lang.String",
+      "description": "Maximum cache size for local Caffeine."
     }
   ] }
