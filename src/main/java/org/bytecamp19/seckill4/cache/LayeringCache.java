@@ -39,12 +39,15 @@ public class LayeringCache extends AbstractValueAdaptingCache {
 
     private Map<String, ReentrantLock> keyLockMap = new ConcurrentHashMap<>();
 
+
     protected LayeringCache(boolean allowNullValues) {
         super(allowNullValues);
     }
 
-    public LayeringCache(String name, RedisTemplate<Object, Object> stringKeyRedisTemplate,
-                              Cache<Object, Object> caffeineCache, CacheRedisCaffeineProperties cacheRedisCaffeineProperties) {
+    public LayeringCache(String name,
+                         RedisTemplate<Object, Object> stringKeyRedisTemplate,
+                         Cache<Object, Object> caffeineCache,
+                         CacheRedisCaffeineProperties cacheRedisCaffeineProperties) {
         super(cacheRedisCaffeineProperties.isCacheNullValues());
         this.name = name;
         this.stringKeyRedisTemplate = stringKeyRedisTemplate;
