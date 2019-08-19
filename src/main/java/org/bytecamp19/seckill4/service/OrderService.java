@@ -89,30 +89,87 @@ public class OrderService {
         return id;
     }
 
-    public Order placeOrder(int uid, Product p) throws ForbiddenException {
+    public OrderMessage placeOrder(int uid, Product p) throws ForbiddenException {
         // Check duplicated order
-        Order preOrder = orderMapper.selectOne(new QueryWrapper<Order>()
-                .eq("uid", uid)
-                .eq("pid", p.getPid()));
-        if (preOrder != null) {
-            throw new ForbiddenException("Duplicate order (uid, pid)");
-        }
-        // TODO: update inventory
-        // TODO: 问题：应该先把库存载入缓存，直接在缓存里扣，还是在数据库锁行用事务扣减
+//        Order preOrder = orderMapper.selectOne(new QueryWrapper<Order>()
+//                .eq("uid", uid)
+//                .eq("pid", p.getPid()));
+//        if (preOrder != null) {
+//            throw new ForbiddenException("Duplicate order (uid, pid)");
+//        }
+        // Check limits
+        int limit = limitManager.checkLimit(p.getPid(), uid);
+        if (limit == -1) throw new ForbiddenException("Cannot check limits");
+        if (limit == 0) return null;
 
-        // Create order
+        // Update inventory
+        int inv = inventoryManager.decInventory(p.getPid());
+
+        if (inv == -1) {
+            // Recover limit (it is useful in real life but not necessary in this scenario)
+            limitManager.removeLimit(p.getPid(), uid);
+            return null;
+        }
+        if (inv == -2) {
+            throw new ForbiddenException("Unexpected order");
+        }
+        // Create order and push to MQ
         String orderId = generateOrderId(p.getPid(), uid, p.getPrice());
-        Order order = new Order();
-        order.setOrder_id(orderId);
-        order.setPid(p.getPid());
-        order.setPrice(p.getPrice());
-        order.setUid(uid);
-        int rowCount = orderMapper.insert(order);
-        if (rowCount != 1) throw new ForbiddenException("Cannot place order");
-        return order;
+        OrderMessage ret = new OrderMessage();
+        ret.setPid(p.getPid());
+        ret.setUid(uid);
+        ret.setPrice(p.getPrice());
+        ret.setOrder_id(orderId);
+        mq.emit(ret);
+
+//        Order order = new Order();
+//        order.setOrder_id(orderId);
+//        order.setPid(p.getPid());
+//        order.setPrice(p.getPrice());
+//        order.setUid(uid);
+//        int rowCount = orderMapper.insert(order);
+//        if (rowCount != 1) throw new ForbiddenException("Cannot place order");
+        return ret;
     }
 
-    public Order payOrder(String orderId) {
+    @Cacheable(
+            key = "'order:' + #orderId",
+            value = "orderCache",
+            cacheManager = "cacheManager"
+    )
+    public Order getOrder(String orderId) {
+        return orderMapper.selectById(orderId);
+    }
+
+    public String getToken(OrderIdWrapper orderId) {
+        return "";
+    }
+
+    public Order payOrder(OrderIdWrapper orderId) {
+        Order o = getOrder(orderId.getOrderId());
+        if (o == null) {
+            Order ret = new Order();
+            ret.setStatus(Order.PAID);
+            ret.setOrder_id(orderId.getOrderId());
+            // TODO: 手动获取token，返回并推送到redis
+            String token = getToken(orderId);
+            ret.setToken(token);
+            PayMessage message = new PayMessage();
+            message.setOrder_id(orderId.getOrderId());
+            message.setToken(token);
+            mq.emit(message);
+            return ret;
+        }
+        else {
+            o.setStatus(Order.PAID);
+            if (o.getToken() != null && !o.getToken().isEmpty()) {
+
+            }
+            else {
+                // TODO: 手动获取token并更新数据库
+            }
+            return o;
+        }
         // TODO: 问题：应该在下订单时就获取付款id，还是等到有支付请求时才获取
         // TODO: 或者：通过uid和price可以检验order_id的合法性，所以
         // TODO: 1. 下订单时扣减完库存直接返回订单id，把订单加入到队列里慢慢写入，写入数据库的时候直接获取到支付id
