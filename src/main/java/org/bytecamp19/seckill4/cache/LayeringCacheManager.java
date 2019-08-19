@@ -1,6 +1,7 @@
 package org.bytecamp19.seckill4.cache;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.RemovalCause;
 import org.bytecamp19.seckill4.config.CacheRedisCaffeineProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

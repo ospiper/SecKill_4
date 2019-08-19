@@ -13,6 +13,9 @@ import java.io.Serializable;
 @Data
 @TableName("orders")
 public class Order implements Serializable {
+    public static final int UNPAID = 0;
+    public static final int PAID = 1;
+
     @TableId
     private String order_id;
     private int uid;

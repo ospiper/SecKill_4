@@ -1,0 +1,18 @@
+{
+  "name": "seckill-message-consumer",
+  "version": "1.0.0",
+  "description": "",
+  "private": true,
+  "main": "consumer.js",
+  "dependencies": {
+    "axios": "^0.19.0",
+    "pg": "^7.12.1",
+    "redis": "^2.8.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "LLAP",
+  "license": "SATA"
+}
