@@ -17,7 +17,7 @@ import org.springframework.test.context.junit4.SpringRunner;
  */
 @SpringBootTest
 @RunWith(SpringRunner.class)
-public class EntityTest {
+public class MapperTest {
     @Autowired
     private SessionMapper sessionMapper;
     @Autowired
@@ -26,8 +26,9 @@ public class EntityTest {
     @Test
     public void testSessionSelect() {
         String sid = "ab5c53d8e094263412ffdfe524ddba0d";
+        final int uid = 175230;
         Session s = sessionMapper.selectById(sid);
-        assertEquals(s.getUid(), 175230);
+        assertEquals(s.getUid(), uid);
         assertEquals(s.getSessionid(), sid);
     }
 

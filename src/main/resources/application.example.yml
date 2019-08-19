@@ -32,9 +32,10 @@ spring:
         - orderCache
       multi:
         caffeine:
-          expireAfterAccess: 10000
+          expireAfterAccess: 0
+          maximumSize: 0
         redis:
-          defaultExpiration: 60000
+          defaultExpiration: 0
 
 ## Remember to turn off after testing
 logging:
@@ -48,3 +49,4 @@ logging:
 app:
   printStackTraceOnError: true
   resetToken: 123456
+  tokenServer: SERVER_URI
