@@ -25,7 +25,8 @@ public class ProductService {
     private CacheManager cacheManager;
     private InventoryManager inventoryManager;
 
-    public ProductService(ProductMapper productMapper, CacheManager cacheManager, InventoryManager inventoryManager) {
+    public ProductService(ProductMapper productMapper, CacheManager cacheManager,
+                          InventoryManager inventoryManager) {
         this.productMapper = productMapper;
         this.cacheManager = cacheManager;
         this.inventoryManager = inventoryManager;

@@ -42,9 +42,5 @@ public class InventoryTest {
         assertEquals(inv2 - 1, inv3);
     }
 
-    @After
-    public void after() {
-        inventoryManager.clearInventory();
-        assert inventoryManager.getInventories().size() == 0;
-    }
+
 }

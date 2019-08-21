@@ -32,7 +32,7 @@ public class InventoryManager {
 
     public boolean initInventory(int pid, int count) {
         boolean ret = hashOperations.putIfAbsent(hashName, String.valueOf(pid), count);
-        logger.info(String.valueOf(ret));
+        if (ret) logger.debug("Initialized inventory of product " + pid);
         return ret;
     }
 

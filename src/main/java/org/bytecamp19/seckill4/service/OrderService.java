@@ -1,6 +1,8 @@
 package org.bytecamp19.seckill4.service;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import lombok.Data;
 import lombok.Getter;
 import org.bytecamp19.seckill4.cache.*;
@@ -12,8 +14,13 @@ import org.bytecamp19.seckill4.error.ForbiddenException;
 import org.bytecamp19.seckill4.mapper.OrderMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Random;
@@ -30,7 +37,9 @@ public class OrderService {
     private OrderLimitManager limitManager;
     private InventoryManager inventoryManager;
     private RedisMessageQueue mq;
-
+    private WebClient webClient;
+    @Value("${app.tokenServer}")
+    private String tokenServer;
     private static Random random = new Random();
 
     public OrderService(ProductService productService, OrderMapper orderMapper,
@@ -41,9 +50,8 @@ public class OrderService {
         this.limitManager = limitManager;
         this.inventoryManager = inventoryManager;
         this.mq = mq;
+        this.webClient = WebClient.builder().build();
     }
-
-
 
     /**
      * Generate an order_id with given arguments
@@ -89,14 +97,14 @@ public class OrderService {
         return id;
     }
 
+    /**
+     *
+     * @param uid
+     * @param p
+     * @return
+     * @throws ForbiddenException
+     */
     public OrderMessage placeOrder(int uid, Product p) throws ForbiddenException {
-        // Check duplicated order
-//        Order preOrder = orderMapper.selectOne(new QueryWrapper<Order>()
-//                .eq("uid", uid)
-//                .eq("pid", p.getPid()));
-//        if (preOrder != null) {
-//            throw new ForbiddenException("Duplicate order (uid, pid)");
-//        }
         // Check limits
         int limit = limitManager.checkLimit(p.getPid(), uid);
         if (limit == -1) throw new ForbiddenException("Cannot check limits");
@@ -120,7 +128,7 @@ public class OrderService {
         ret.setUid(uid);
         ret.setPrice(p.getPrice());
         ret.setOrder_id(orderId);
-        mq.emit(ret);
+        logger.debug(mq.emit(ret) + " message emitted");
 
 //        Order order = new Order();
 //        order.setOrder_id(orderId);
@@ -132,6 +140,11 @@ public class OrderService {
         return ret;
     }
 
+    /**
+     *
+     * @param orderId
+     * @return
+     */
     @Cacheable(
             key = "'order:' + #orderId",
             value = "orderCache",
@@ -141,8 +154,24 @@ public class OrderService {
         return orderMapper.selectById(orderId);
     }
 
+    /**
+     *
+     * @param orderId
+     * @return
+     */
     public String getToken(OrderIdWrapper orderId) {
-        return "";
+        JSONObject reqData = new JSONObject();
+        reqData.put("order_id", orderId.getOrderId());
+        reqData.put("uid", orderId.getUid());
+        reqData.put("price", orderId.getPrice());
+        Mono<JSONObject> res = webClient.post()
+                .uri(tokenServer + "/token")
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .body(BodyInserters.fromObject(reqData.toJSONString()))
+                .retrieve()
+                .bodyToMono(JSONObject.class);
+        JSONObject retJson = res.block();
+        return retJson == null ? null : retJson.getString("token");
     }
 
     public Order payOrder(OrderIdWrapper orderId) {
@@ -151,23 +180,28 @@ public class OrderService {
             Order ret = new Order();
             ret.setStatus(Order.PAID);
             ret.setOrder_id(orderId.getOrderId());
-            // TODO: 手动获取token，返回并推送到redis
+            // 手动获取token，返回并推送到redis
             String token = getToken(orderId);
             ret.setToken(token);
             PayMessage message = new PayMessage();
             message.setOrder_id(orderId.getOrderId());
             message.setToken(token);
-            mq.emit(message);
+            logger.debug("Token emit result: " + mq.emit(message));
             return ret;
         }
         else {
+            // 有查询到，直接更新数据库即可
             o.setStatus(Order.PAID);
-            if (o.getToken() != null && !o.getToken().isEmpty()) {
-
+            logger.debug("Found order in db");
+            UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
+            if (o.getToken() == null || o.getToken().isEmpty()) {
+                // token为空，需要手动获取token
+                logger.debug("Requesting token");
+                o.setToken(getToken(orderId));
+//                updateWrapper.set("token", o.getToken());
             }
-            else {
-                // TODO: 手动获取token并更新数据库
-            }
+//            orderMapper.updateById(o);
+            orderMapper.update(o, updateWrapper.eq("order_id", orderId.getOrderId()));
             return o;
         }
         // TODO: 问题：应该在下订单时就获取付款id，还是等到有支付请求时才获取
@@ -177,16 +211,23 @@ public class OrderService {
         // TODO: 3. 支付时如果没查到order，需要向队列推送一条标记，该订单已经支付过（并记录支付token），在worker写数据时查询该标记并更新数据。
     }
 
-    public List<OrderResult> getOrdersByUid(int uid){
+    public List<OrderResult> getOrdersByUid(int uid) {
+
         return orderMapper.getOrdersByUid(uid);
     }
 
+    /**
+     * Reset all status including:
+     * - clear all the orders from db
+     * - clear pay message queue & order messasge queue
+     * - clear inventories of all products
+     * - clear all order limits for all users
+     *
+     */
     public void reset() {
-        // Clear inventories
         inventoryManager.clearInventory();
-        // Clear all order limits
         limitManager.clearLimits();
-        // TODO: 清除order数据库
-        // TODO: 清除消息队列的所有信息
+        orderMapper.delete(null);
+        mq.clear();
     }
 }

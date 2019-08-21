@@ -30,12 +30,18 @@ public class RedisMessageQueue {
     }
 
     public int emit(OrderMessage message) {
+        logger.debug(message.toString());
         Long ret = listOperations.leftPush(queueName, JSON.toJSONString(message));
         return ret == null ? -1 : ret.intValue();
     }
 
     public Boolean emit(PayMessage message) {
+        logger.debug(message.toString());
         return hashOperations.putIfAbsent(payHashName, message.getOrder_id(), message.getToken());
     }
 
+    public void clear() {
+        stringRedisTemplate.delete(queueName);
+        stringRedisTemplate.delete(payHashName);
+    }
 }

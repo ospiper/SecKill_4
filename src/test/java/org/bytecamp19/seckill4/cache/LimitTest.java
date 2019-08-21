@@ -44,10 +44,5 @@ public class LimitTest {
         assertEquals(0, members.size());
     }
 
-    @After
-    public void after() {
-        limitManager.clearLimits();
-        assert limitManager.getLimits().size() == 0;
-    }
 
 }
