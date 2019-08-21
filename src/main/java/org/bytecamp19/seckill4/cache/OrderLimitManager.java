@@ -44,7 +44,7 @@ public class OrderLimitManager {
 
     public Long clearLimits() {
         Set<Object> keys = stringIntegerRedisTemplate.keys(hashName + "*");
-        System.out.println(keys);
+//        System.out.println(keys);
         if (keys == null) return null;
         return stringIntegerRedisTemplate.delete(keys);
     }
