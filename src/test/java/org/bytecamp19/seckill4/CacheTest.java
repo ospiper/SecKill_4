@@ -48,8 +48,5 @@ public class CacheTest {
         assertEquals(count - 1, p3.getCount());
     }
 
-    @After
-    public void clear() {
 
-    }
 }
