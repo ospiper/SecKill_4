@@ -88,6 +88,7 @@ public class OrderTest {
         orderService.getToken(wrapper);
     }
 
+    /** Run this test WITHOUT consumer running!! */
     @Test
     public void unWrittenPayTest() {
         Product product = productService.getProduct(pid);
@@ -104,13 +105,7 @@ public class OrderTest {
     }
 
     @Test
-    public void emptyTokenTest() {
-        try {
-           OrderIdWrapper id = new OrderIdWrapper("1566408601137.175230.177620431.625.110");
-           orderService.payOrder(id);
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-        }
+    public void payTestAllBranches() {
+        // TODO: There are 3 different scenarios in payOrder() method, test them each using database directly.
     }
 }
