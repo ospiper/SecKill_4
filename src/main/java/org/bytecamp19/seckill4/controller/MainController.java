@@ -153,12 +153,16 @@ public class MainController {
     }
 
     @PostMapping("reset")
-    public JSONObject reset(@Param("token") String token) throws ForbiddenException {
+    public JSONObject reset(@RequestBody JSONObject json) throws ForbiddenException {
+        String token = json.getString("token");
         if (token == null){
             throw new ForbiddenException("token not given");
         }
+        if (!token.equals(resetToken)) {
+            throw new ForbiddenException("Reset token mismatched");
+        }
         JSONObject ret = new JSONObject();
-        // TODO reset()还没有实现
+        orderService.reset();
         if (token.equals(resetToken)){
             ret.put("code", 0);
         } else {
