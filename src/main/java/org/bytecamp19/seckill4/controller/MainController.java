@@ -36,11 +36,26 @@ public class MainController {
         this.orderService = orderService;
     }
 
+    private Session getSession(String sessionId, Integer uid) throws ForbiddenException {
+        Session session = sessionService.getSession(sessionId);
+        logger.debug("session = " + session);
+        if (session == null) {
+            throw new ForbiddenException("Session not found");
+        }
+        if (uid != null && session.getUid() != uid) {
+            throw new ForbiddenException("Invalid uid");
+        }
+        return session;
+    }
+
     @GetMapping("product")
-    public Product getProduct(@Param("pid") Integer pid) throws ForbiddenException {
+    public Product getProduct(@Param("pid") Integer pid,
+                              @RequestHeader("sessionid") String sessionId) throws ForbiddenException {
         if (pid == null) {
             throw new ForbiddenException("pid not given");
         }
+        logger.info("Params: pid: " + pid);
+        getSession(sessionId, null);
         Product ret = productService.getProduct(pid);
         if (ret == null) {
             throw new ForbiddenException("Product not found");
@@ -58,15 +73,11 @@ public class MainController {
         if (uid == null || pid == null || sessionId == null || sessionId.isEmpty()) {
             throw new ForbiddenException("pid / uid / session not given");
         }
-
+        logger.info("Params: pid: " + pid + ", uid: " + uid);
         // Check session
-        Session session = sessionService.getSession(sessionId, uid);
+        getSession(sessionId, uid);
         logger.debug("pid = " + pid);
         logger.debug("uid = " + uid);
-        logger.debug("session = " + session);
-        if (session == null) {
-            throw new ForbiddenException("Session not found");
-        }
 
         // Check product
         Product product = productService.getProduct(pid);
@@ -96,14 +107,17 @@ public class MainController {
         Integer uid = json.getInteger("uid");
         Integer price = json.getInteger("price");
         String orderId = json.getString("order_id");
-        if (uid == null || price == null || orderId == null) {
-            throw new ForbiddenException("pid / price / order_id not given");
+        if (uid == null || price == null || orderId == null || sessionId == null || sessionId.isEmpty()) {
+            throw new ForbiddenException("pid / price / order_id / session id not given");
         }
+        logger.info("Params: uid: " + uid + ", price: " + price + ", order_id: " + orderId);
         OrderIdWrapper id = orderService.validateOrderId(orderId, uid, price);
         if (id == null) {
             throw new ForbiddenException("Invalid order_id");
         }
         // TODO: validate session
+        getSession(sessionId, uid);
+
         Order o = orderService.payOrder(id);
         JSONObject ret = new JSONObject();
         if (o != null) {
@@ -122,16 +136,19 @@ public class MainController {
     }
 
     @GetMapping("result")
-    public JSONObject getResult(@Param("uid") Integer uid,
+    public JSONObject getResult(@RequestBody JSONObject json,
                                 @RequestHeader("sessionid") String sessionId)
             throws ForbiddenException {
+        Integer uid = json.getInteger("uid");
         if (uid == null){
             throw new ForbiddenException("uid not given");
         }
+        logger.info("Params: uid: " + uid);
         JSONObject ret = new JSONObject();
         List<OrderResult> data = orderService.getOrdersByUid(uid);
         ret.put("data", data);
         // TODO: validate session
+        getSession(sessionId, uid);
         return ret;
     }
 
