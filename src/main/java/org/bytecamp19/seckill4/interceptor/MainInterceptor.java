@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,7 +27,8 @@ public class MainInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        logger.debug("Prehandling " + request.getRequestURI());
+//        logger.debug("Prehandling " + request.getRequestURI());
+        logger.info(request.getMethod() + " " + request.getRequestURI());
         String ip = request.getHeader("x-forwarded-for");
         String ua = request.getHeader("user-agent");
         String sessionid = request.getHeader("sessionid");
@@ -35,6 +37,12 @@ public class MainInterceptor implements HandlerInterceptor {
             response.setStatus(403);
         }
         return ret;
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        logger.info("Served");
+        logger.info("");
     }
 
     private boolean checkHeaders(String ip, String ua, String sessionid) {
