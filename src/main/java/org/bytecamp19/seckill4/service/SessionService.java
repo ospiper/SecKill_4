@@ -28,11 +28,10 @@ public class SessionService {
             value = "sessionCache",
             cacheManager = "cacheManager"
     )
-    public Session getSession(String sessionid, int uid) {
+    public Session getSession(String sessionid) {
         return sessionMapper.selectOne(
                 new QueryWrapper<Session>()
                         .eq("sessionid", sessionid)
-                        .eq("uid", uid)
         );
 
     }
