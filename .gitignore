@@ -1,5 +1,6 @@
 HELP.md
 node_modules
+venv
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**

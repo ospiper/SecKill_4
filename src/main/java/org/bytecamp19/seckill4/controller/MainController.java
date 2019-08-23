@@ -136,10 +136,9 @@ public class MainController {
     }
 
     @GetMapping("result")
-    public JSONObject getResult(@RequestBody JSONObject json,
+    public JSONObject getResult(@Param("uid") Integer uid,
                                 @RequestHeader("sessionid") String sessionId)
             throws ForbiddenException {
-        Integer uid = json.getInteger("uid");
         if (uid == null){
             throw new ForbiddenException("uid not given");
         }
