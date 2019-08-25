@@ -1,5 +1,6 @@
 package org.bytecamp19.seckill4.interceptor;
 
+import org.bytecamp19.seckill4.interceptor.costlogger.CostLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +26,7 @@ public class MainInterceptor implements HandlerInterceptor {
     private static final Pattern md5 = Pattern.compile("^([a-fA-F0-9]{32})$");
     private Logger logger = LoggerFactory.getLogger(MainInterceptor.class);
 
+    @CostLogger(LEVEL = CostLogger.Level.DEBUG)
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 //        logger.debug("Prehandling " + request.getRequestURI());
@@ -42,7 +44,6 @@ public class MainInterceptor implements HandlerInterceptor {
     @Override
     public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
         logger.info("Served");
-        logger.info("");
     }
 
     private boolean checkHeaders(String ip, String ua, String sessionid) {

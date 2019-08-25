@@ -25,3 +25,4 @@ public class InterceptorConfig extends WebMvcConfigurationSupport {
         registry.addInterceptor(mainInterceptor).addPathPatterns("/*");
     }
 }
+
