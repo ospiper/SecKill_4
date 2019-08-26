@@ -41,11 +41,6 @@ public class MainInterceptor implements HandlerInterceptor {
         return ret;
     }
 
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        logger.info("Served");
-    }
-
     private boolean checkHeaders(String ip, String ua, String sessionid) {
         printHeaders(ip, ua, sessionid);
 

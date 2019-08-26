@@ -54,7 +54,7 @@ public class MainController {
         if (pid == null) {
             throw new ForbiddenException("pid not given");
         }
-        logger.info("Params: pid: " + pid);
+        logger.debug("Params: pid: " + pid);
         getSession(sessionId, null);
         Product ret = productService.getProduct(pid);
         if (ret == null) {
@@ -73,7 +73,7 @@ public class MainController {
         if (uid == null || pid == null || sessionId == null || sessionId.isEmpty()) {
             throw new ForbiddenException("pid / uid / session not given");
         }
-        logger.info("Params: pid: " + pid + ", uid: " + uid);
+        logger.debug("Params: pid: " + pid + ", uid: " + uid);
         // Check session
         getSession(sessionId, uid);
         logger.debug("pid = " + pid);
@@ -110,12 +110,11 @@ public class MainController {
         if (uid == null || price == null || orderId == null || sessionId == null || sessionId.isEmpty()) {
             throw new ForbiddenException("pid / price / order_id / session id not given");
         }
-        logger.info("Params: uid: " + uid + ", price: " + price + ", order_id: " + orderId);
+        logger.debug("Params: uid: " + uid + ", price: " + price + ", order_id: " + orderId);
         OrderIdWrapper id = orderService.validateOrderId(orderId, uid, price);
         if (id == null) {
             throw new ForbiddenException("Invalid order_id");
         }
-        // TODO: validate session
         getSession(sessionId, uid);
 
         Order o = orderService.payOrder(id);
@@ -142,11 +141,10 @@ public class MainController {
         if (uid == null){
             throw new ForbiddenException("uid not given");
         }
-        logger.info("Params: uid: " + uid);
+        logger.debug("Params: uid: " + uid);
         JSONObject ret = new JSONObject();
         List<OrderResult> data = orderService.getOrdersByUid(uid);
         ret.put("data", data);
-        // TODO: validate session
         getSession(sessionId, uid);
         return ret;
     }
