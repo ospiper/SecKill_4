@@ -1,6 +1,7 @@
 package org.bytecamp19.seckill4.cache;
 
 import com.alibaba.fastjson.JSON;
+import org.bytecamp19.seckill4.interceptor.costlogger.CostLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.HashOperations;
@@ -19,6 +20,7 @@ public class RedisMessageQueue {
     private StringRedisTemplate stringRedisTemplate;
     private ListOperations<String, String> listOperations;
     private HashOperations<String, String, String> hashOperations;
+    private boolean cleared = false;
 
     private static final String queueName = "orderQueue";
     private static final String payHashName = "paidOrder";
@@ -43,5 +45,15 @@ public class RedisMessageQueue {
     public void clear() {
         stringRedisTemplate.delete(queueName);
         stringRedisTemplate.delete(payHashName);
+        cleared = false;
+    }
+
+    public void waitForConsumer() {
+        if (cleared) return;
+        Long size = null;
+        while (size == null || size > 0) {
+            size = listOperations.size(queueName);
+        }
+        cleared = true;
     }
 }
