@@ -4,9 +4,11 @@ import com.github.benmanes.caffeine.cache.Cache;
 import org.bytecamp19.seckill4.cache.lock.RedisDistributedLock;
 import org.bytecamp19.seckill4.cache.message.CacheMessage;
 import org.bytecamp19.seckill4.config.CacheRedisCaffeineProperties;
+import org.bytecamp19.seckill4.interceptor.costlogger.CostLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.support.AbstractValueAdaptingCache;
+import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.StringUtils;
 
@@ -68,11 +70,54 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         return this;
     }
 
+    @Override
+    public ValueWrapper get(Object key) {
+        logger.debug("Getting cache {}", key);
+        boolean needLock = !key.toString().startsWith("session");
+        ValueWrapper ret = null;
+        long start = System.currentTimeMillis();
+        Object value = lookup(key);
+        if(value != null) {
+            logger.error("Cache hit " + (System.currentTimeMillis() - start) + " ms");
+            return new SimpleValueWrapper(value);
+        }
+
+        if (needLock) {
+            ReentrantLock lock = keyLockMap.get(key.toString());
+            if (lock == null) {
+//            logger.debug("create lock for key : {}", key);
+                lock = new ReentrantLock();
+                keyLockMap.putIfAbsent(key.toString(), lock);
+            }
+            try {
+//            logger.debug("locking for key: {}", key);
+                lock.lock();
+                value = lookup(key);
+                if (value != null) {
+                    logger.error("Cache hit " + (System.currentTimeMillis() - start) + " ms");
+                    return new SimpleValueWrapper(value);
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw e;
+            } finally {
+//            logger.debug("unlocking {}", key);
+                lock.unlock();
+            }
+        }
+        logger.error("Cache miss {} ms", (System.currentTimeMillis() - start));
+        return ret;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public <T> T get(Object key, Callable<T> valueLoader) {
+        logger.debug("Getting cache {}", key);
+        long start = System.currentTimeMillis();
         Object value = lookup(key);
         if(value != null) {
+            logger.error("Cache hit " + (System.currentTimeMillis() - start) + " ms");
             return (T) value;
         }
 
@@ -83,18 +128,22 @@ public class LayeringCache extends AbstractValueAdaptingCache {
             keyLockMap.putIfAbsent(key.toString(), lock);
         }
         try {
+            logger.debug("locking for key: {}", key);
             lock.lock();
             value = lookup(key);
             if(value != null) {
+                logger.error("Cache hit " + (System.currentTimeMillis() - start) + " ms");
                 return (T) value;
             }
             value = valueLoader.call();
             Object storeValue = toStoreValue(value);
             put(key, storeValue);
+            logger.error("Cache set " + (System.currentTimeMillis() - start) + " ms");
             return (T) value;
         } catch (Exception e) {
             throw new ValueRetrievalException(key, valueLoader, e.getCause());
         } finally {
+            logger.debug("unlocking {}", key);
             lock.unlock();
         }
     }
@@ -124,7 +173,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         Object prevValue = null;
         RedisDistributedLock redisLock = new RedisDistributedLock(stringKeyRedisTemplate);
         // TODO: 考虑使用分布式锁，或者将redis的setIfAbsent改为原子性操作
-        if (redisLock.lock("Layer:putIfAbsent", 50, 20L)) {
+        if (redisLock.lock("Layer:putIfAbsent" + key.toString(), 60000L)) {
             prevValue = stringKeyRedisTemplate.opsForValue().get(cacheKey);
             if(prevValue == null) {
                 long expire = getExpire();
@@ -138,7 +187,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
 
                 caffeineCache.put(key, toStoreValue(value));
             }
-            redisLock.releaseLock("Layer:putIfAbsent");
+            redisLock.releaseLock("Layer:putIfAbsent" + key.toString());
         }
         return toValueWrapper(prevValue);
     }

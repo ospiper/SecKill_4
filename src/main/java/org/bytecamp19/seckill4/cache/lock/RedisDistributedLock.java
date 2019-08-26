@@ -2,7 +2,6 @@ package org.bytecamp19.seckill4.cache.lock;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.ReturnType;
 import org.springframework.data.redis.core.RedisCallback;
@@ -42,21 +41,36 @@ public class RedisDistributedLock extends AbstractDistributedLock {
 
     @Override
     public boolean lock(String key, long expire, int retryTimes, long sleepMillis) {
-        boolean result = setRedis(key, expire);
-        // 如果获取锁失败，按照传入的重试次数进行重试
-        while((!result) && retryTimes-- > 0){
-            try {
-                logger.debug("lock failed, retrying..." + retryTimes);
-                Thread.sleep(sleepMillis);
-            } catch (InterruptedException e) {
-                return false;
+	    long start = System.currentTimeMillis();
+	    boolean result = false;
+	    while (!result) {
+	        result = setRedis(key, expire);
+	        if (!result) {
+	            try {
+	                Thread.sleep(5);
+                }
+	            catch (InterruptedException ex) {
+	                ex.printStackTrace();
+                }
             }
-            result = setRedis(key , expire);
         }
+//        boolean result = setRedis(key, expire);
+        // 如果获取锁失败，按照传入的重试次数进行重试
+//        while((!result) && retryTimes-- > 0){
+//            try {
+//                logger.debug("lock failed, retrying..." + retryTimes);
+//                Thread.sleep(sleepMillis);
+//            } catch (InterruptedException e) {
+//                return false;
+//            }
+//            result = setRedis(key , expire);
+//        }
+        logger.warn("LOCK " + (System.currentTimeMillis() - start) + " ms");
         return result;
     }
 
     private boolean setRedis(final String key, final long expire ) {
+//	    long start = System.currentTimeMillis();
         try{
             RedisCallback<Boolean> callback = (connection) -> {
                 String uuid = UUID.randomUUID().toString();
@@ -67,6 +81,7 @@ public class RedisDistributedLock extends AbstractDistributedLock {
                         Expiration.milliseconds(expire),
                         RedisStringCommands.SetOption.SET_IF_ABSENT);
             };
+//            logger.warn("PERFORM LOCK " + (System.currentTimeMillis() - start) + " ms");
             return (Boolean)stringKeyRedisTemplate.execute(callback);
         } catch (Exception e) {
             logger.error("redis lock error.", e);
@@ -77,6 +92,7 @@ public class RedisDistributedLock extends AbstractDistributedLock {
 
     @Override
     public boolean releaseLock(String key) {
+        long start = System.currentTimeMillis();
         // 释放锁的时候，有可能因为持锁之后方法执行时间大于锁的有效期，此时有可能已经被另外一个线程持有锁，所以不能直接删除
         try {
             RedisCallback<Boolean> callback = (connection) -> {
@@ -94,7 +110,9 @@ public class RedisDistributedLock extends AbstractDistributedLock {
         } finally {
             // 清除掉ThreadLocal中的数据，避免内存溢出
             lockFlag.remove();
+            logger.warn("UNLOCK " + (System.currentTimeMillis() - start) + " ms");
         }
+
         return false;
     }
 

@@ -1,5 +1,6 @@
 package org.bytecamp19.seckill4.cache;
 
+import org.bytecamp19.seckill4.interceptor.costlogger.CostLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -32,6 +33,7 @@ public class OrderLimitManager {
      * @param uid user id
      * @return 1(not ordered), 0(ordered), -1(error)
      */
+//    @CostLogger(LEVEL = CostLogger.Level.WARN)
     public int checkLimit(int pid, int uid) {
         Long ret = setOperations.add(hashName + pid, uid);
         return ret == null ? -1 : ret.intValue();
