@@ -1,6 +1,7 @@
 package org.bytecamp19.seckill4.cache;
 
 import org.bytecamp19.seckill4.cache.lock.RedisDistributedLock;
+import org.bytecamp19.seckill4.interceptor.costlogger.CostLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,7 @@ public class InventoryManager {
 //        return getInventory(pid);
 //    }
 
+//    @CostLogger(LEVEL = CostLogger.Level.WARN)
     public int getInventory(int pid) {
         logger.debug("Getting inventory for " + pid);
         Object ret = hashOperations.get(hashName, String.valueOf(pid));
@@ -53,22 +55,30 @@ public class InventoryManager {
      * @param pid product id
      * @return updated inventory, -1(insufficient products), -2(product not found)
      */
+//    @CostLogger(LEVEL = CostLogger.Level.WARN)
     public int decInventory(int pid) {
         String lockKey = "Inventory:" + pid;
         RedisDistributedLock redisLock = new RedisDistributedLock(stringIntegerRedisTemplate);
         int inv = -1;
         int ret = -1;
-        if (redisLock.lock(lockKey, 50, 20L)) {
-            inv = getInventory(pid);
-            if (inv >= 1) {
-                ret = hashOperations.increment(hashName, String.valueOf(pid), -1).intValue();
+//        while (!redisLock.lock(lockKey, 1500L));
+
+//        inv = getInventory(pid);
+//        if (inv >= 1) {
+            Long inc = hashOperations.increment(hashName, String.valueOf(pid), -1);
+            if (inc == null) return -2;
+            ret = inc.intValue();
 //                ret = setInventory(pid, inv - 1);
+            if (ret < 0) {
+//                hashOperations.increment(hashName, String.valueOf(pid), 1).intValue();
+                ret = -1;
             }
-            else if (inv == -1) {
-                ret = -2;
-            }
-            redisLock.releaseLock(lockKey);
-        }
+//        }
+//        else if (inv == -1) {
+//            ret = -2;
+//        }
+//        redisLock.releaseLock(lockKey);
+
         return ret;
     }
 

@@ -40,11 +40,11 @@ spring:
 ## Remember to turn off after testing
 logging:
   level:
-    org.bytecamp19.seckill4.mapper: debug
-    org.bytecamp19.seckill4.cache: debug
-    org.bytecamp19.seckill4.controller: debug
-    org.bytecamp19.seckill4.interceptor: debug
-    org.bytecamp19.seckill4.service: debug
+    org.bytecamp19.seckill4.mapper: info
+    org.bytecamp19.seckill4.cache: info
+    org.bytecamp19.seckill4.controller: info
+    org.bytecamp19.seckill4.interceptor: info
+    org.bytecamp19.seckill4.service: info
 
 app:
   printStackTraceOnError: true

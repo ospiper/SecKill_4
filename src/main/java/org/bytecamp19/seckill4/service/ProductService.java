@@ -1,7 +1,10 @@
 package org.bytecamp19.seckill4.service;
 
 import org.bytecamp19.seckill4.cache.InventoryManager;
+import org.bytecamp19.seckill4.cache.LayeringCache;
+import org.bytecamp19.seckill4.cache.LayeringCacheManager;
 import org.bytecamp19.seckill4.entity.Product;
+import org.bytecamp19.seckill4.interceptor.costlogger.CostLogger;
 import org.bytecamp19.seckill4.mapper.ProductMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,10 +25,10 @@ import org.springframework.stereotype.Service;
 public class ProductService {
     private Logger logger = LoggerFactory.getLogger(ProductService.class);
     private ProductMapper productMapper;
-    private CacheManager cacheManager;
+    private LayeringCacheManager cacheManager;
     private InventoryManager inventoryManager;
 
-    public ProductService(ProductMapper productMapper, CacheManager cacheManager,
+    public ProductService(ProductMapper productMapper, LayeringCacheManager cacheManager,
                           InventoryManager inventoryManager) {
         this.productMapper = productMapper;
         this.cacheManager = cacheManager;
@@ -37,15 +40,18 @@ public class ProductService {
 //            value = "productCache",
 //            cacheManager = "cacheManager"
 //    )
+    @CostLogger(LEVEL = CostLogger.Level.WARN)
     public Product getProduct(int pid) {
-        Cache cache = cacheManager.getCache("productCache");
+        LayeringCache cache = (LayeringCache)cacheManager.getCache("productCache");
         Product ret = null;
         if (cache != null) {
             Cache.ValueWrapper val = cache.get("product:" + pid);
             if (val != null) ret = (Product)val.get();
             // if cache misses
             if (ret == null) {
+                long start = System.currentTimeMillis();
                 ret = productMapper.selectById(pid);
+                logger.warn("SQL query {} ms", (System.currentTimeMillis() - start));
                 if (ret != null) {
                     cache.put("product:" + pid, ret);
                 }

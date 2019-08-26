@@ -9,10 +9,11 @@ const pgPort = 5432;
 const pgUser = 'postgres';
 const pgPass = '';
 const pgDatabase = 'seckill';
+const tokenServer = 'http://127.0.0.1:8889';
 
 // create an axios instance
 const request = axios.create({
-    baseURL: 'http://127.0.0.1:8889', // api 的 base_url
+    baseURL: tokenServer, // api 的 base_url
     timeout: 1500 // request timeout
 });
 
@@ -49,7 +50,7 @@ const pool = new Pool({
     port: pgPort,
     max: 5
 });
-console.log("Database consumed successfully");
+console.log("Database connected successfully");
 
 pool.on('error', (err, client) => {
     console.error("DB error");
@@ -121,25 +122,12 @@ async function requestPayToken(orderId, uid, price) {
     }
     return null;
 }
-/*public class PayMessage implements Serializable {
-    private String order_id;
-    private String token;
-}
-public class OrderMessage implements Serializable {
-    private int uid;
-    private int pid;
-    private int price;
-    private String order_id;
-}*/
+/*
+PayMessage(order_id: String, token: String)
+OrderMessage(uid, pid, price: int, order_id: String)
+*/
 function createOrder(order) {
-    /*
-    private int uid;
-    private int pid;
-    private int price;
-    private int status = 0;
-    private String token;
-    (order_id, uid, pid, price, status, token)
-     */
+    /* (order_id: String, uid, pid, price, status: int, token: String) */
     const orderArgs = [
         order.order_id,
         order.uid,
@@ -209,16 +197,21 @@ async function startConsume() {
     }
 }
 
+let closed = false;
 async function end() {
+    if (closed === true) {
+        console.error("Already called exit");
+        return;
+    }
+    closed = true;
     console.log("Bye");
-    client.quit();
+    client.end(true);
     await pool.end().catch(err => {
         console.error(err);
     });
 }
 
 process.on("SIGTERM", end);
-process.on("SIGKILL", end);
 process.on("SIGINT", end);
 
 

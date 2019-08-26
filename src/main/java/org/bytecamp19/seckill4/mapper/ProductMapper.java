@@ -2,6 +2,7 @@ package org.bytecamp19.seckill4.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.bytecamp19.seckill4.entity.Product;
+import org.bytecamp19.seckill4.interceptor.costlogger.CostLogger;
 import org.springframework.stereotype.Component;
 
 /**

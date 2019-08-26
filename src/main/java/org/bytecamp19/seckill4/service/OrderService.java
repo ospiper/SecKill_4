@@ -11,6 +11,7 @@ import org.bytecamp19.seckill4.entity.OrderResult;
 import org.bytecamp19.seckill4.entity.Order;
 import org.bytecamp19.seckill4.entity.Product;
 import org.bytecamp19.seckill4.error.ForbiddenException;
+import org.bytecamp19.seckill4.interceptor.costlogger.CostLogger;
 import org.bytecamp19.seckill4.mapper.OrderMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,6 +105,7 @@ public class OrderService {
      * @return
      * @throws ForbiddenException
      */
+//    @CostLogger(LEVEL = CostLogger.Level.ERROR)
     public OrderMessage placeOrder(int uid, Product p) throws ForbiddenException {
         // Check limits
         int limit = limitManager.checkLimit(p.getPid(), uid);
@@ -115,7 +117,7 @@ public class OrderService {
 
         if (inv == -1) {
             // Recover limit (it is useful in real life but not necessary in this scenario)
-            limitManager.removeLimit(p.getPid(), uid);
+//            limitManager.removeLimit(p.getPid(), uid);
             return null;
         }
         if (inv == -2) {
@@ -212,7 +214,7 @@ public class OrderService {
     }
 
     public List<OrderResult> getOrdersByUid(int uid) {
-
+        mq.waitForConsumer();
         return orderMapper.getOrdersByUid(uid);
     }
 
