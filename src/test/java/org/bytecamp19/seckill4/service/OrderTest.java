@@ -17,6 +17,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.ListOperations;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.junit.Assert.*;
@@ -40,15 +42,22 @@ public class OrderTest {
     private OrderLimitManager orderLimitManager;
     @Autowired
     private RedisMessageQueue mq;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+    private ListOperations<String, String> listOperations;
+
+    private static final String queueName = "orderQueue";
+    private static final String payHashName = "paidOrder";
 
     private final int pid = 177620431;
     private final int uid = 175230;
-
+    private final int price = 100;
     @Before
     public void before() {
         orderLimitManager.clearLimits();
         inventoryManager.clearInventory();
         mq.clear();
+        listOperations = stringRedisTemplate.opsForList();
     }
 
     @Test
@@ -107,5 +116,21 @@ public class OrderTest {
     @Test
     public void payTestAllBranches() {
         // TODO: There are 3 different scenarios in payOrder() method, test them each using database directly.
+        // 1.数据库没查到的情况
+        String orderId = orderService.generateOrderId(pid, uid, price);
+        OrderIdWrapper wrapper = new OrderIdWrapper(orderId);
+        Order order = orderService.payOrder(wrapper);
+        System.out.println("数据库没查到时：");
+        System.out.println(order);
+        // 2.数据库查到了，但是没有查到token
+        wrapper = new OrderIdWrapper("1566889417244.175486.176467546.194.110");
+        order = orderService.payOrder(wrapper);
+        System.out.println("数据库查到了，但是数据库中没有token：");
+        System.out.println(order);
+        // 3.数据库查到了，有token
+        order = orderService.payOrder(wrapper);
+        System.out.println("数据库查到了，并且已经有token：");
+        System.out.println(order);
+
     }
 }
