@@ -1,5 +1,6 @@
 package org.bytecamp19.seckill4.service;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.bytecamp19.seckill4.cache.LayeringCache;
 import org.bytecamp19.seckill4.cache.LayeringCacheManager;
@@ -28,6 +29,7 @@ public class SessionService {
     }
 
     @CostLogger(LEVEL = CostLogger.Level.WARN)
+    @DS("slave")
     public Session getSession(String sessionid) {
         LayeringCache cache = (LayeringCache)cacheManager.getCache("productCache");
         Session ret = null;

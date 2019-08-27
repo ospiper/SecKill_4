@@ -1,6 +1,7 @@
 package org.bytecamp19.seckill4.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import lombok.Data;
@@ -152,6 +153,7 @@ public class OrderService {
             value = "orderCache",
             cacheManager = "cacheManager"
     )
+    @DS("slave")
     public Order getOrder(String orderId) {
         return orderMapper.selectById(orderId);
     }

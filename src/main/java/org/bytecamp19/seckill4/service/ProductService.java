@@ -1,5 +1,6 @@
 package org.bytecamp19.seckill4.service;
 
+import com.baomidou.dynamic.datasource.annotation.DS;
 import org.bytecamp19.seckill4.cache.InventoryManager;
 import org.bytecamp19.seckill4.cache.LayeringCache;
 import org.bytecamp19.seckill4.cache.LayeringCacheManager;
@@ -41,6 +42,7 @@ public class ProductService {
 //            cacheManager = "cacheManager"
 //    )
     @CostLogger(LEVEL = CostLogger.Level.WARN)
+    @DS("slave")
     public Product getProduct(int pid) {
         LayeringCache cache = (LayeringCache)cacheManager.getCache("productCache");
         Product ret = null;
