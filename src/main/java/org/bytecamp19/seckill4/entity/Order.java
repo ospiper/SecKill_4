@@ -18,8 +18,8 @@ public class Order implements Serializable {
 
     @TableId
     private String order_id;
-    private int uid;
-    private int pid;
+    private long uid;
+    private long pid;
     private int price;
     private int status = 0;
     private String token;

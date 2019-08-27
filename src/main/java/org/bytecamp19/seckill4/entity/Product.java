@@ -14,7 +14,7 @@ import java.io.Serializable;
 @TableName("products")
 public class Product implements Serializable {
     @TableId
-    private int pid;
+    private long pid;
     private int count;
     private int price;
     private String detail;

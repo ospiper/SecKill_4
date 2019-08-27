@@ -16,8 +16,8 @@ public class ProductTest {
     @Autowired
     private ProductService productService;
 
-    private final int pid = 177620431;
-    private final int pid_1 = 1111111;
+    private final long pid = 177620431;
+    private final long pid_1 = 1111111;
 
     @Test
     public void getProductTest(){

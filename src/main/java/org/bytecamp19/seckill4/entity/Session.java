@@ -15,7 +15,7 @@ import java.io.Serializable;
 public class Session implements Serializable {
     @TableId
     private String sessionid;
-    private int uid;
+    private long uid;
 
     @Override
     public String toString() {

@@ -8,8 +8,8 @@ import java.io.Serializable;
 @Data
 @ToString
 public class OrderResult implements Serializable {
-    private int uid;
-    private int pid;
+    private long uid;
+    private long pid;
     private String detail;
     private String order_id;
     private int price;

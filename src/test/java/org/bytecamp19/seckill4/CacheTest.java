@@ -34,7 +34,7 @@ public class CacheTest {
 
     @Test
     public void redisTest() {
-        final int pid = 177620431;
+        final long pid = 177620431;
         Product p = productService.getProduct(pid);
         int count = p.getCount();
         Product p2 = productService.getProduct(pid);

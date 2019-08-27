@@ -43,7 +43,7 @@ public class ProductService {
 //    )
     @CostLogger(LEVEL = CostLogger.Level.WARN)
     @DS("slave")
-    public Product getProduct(int pid) {
+    public Product getProduct(long pid) {
         LayeringCache cache = (LayeringCache)cacheManager.getCache("productCache");
         Product ret = null;
         if (cache != null) {
@@ -61,6 +61,7 @@ public class ProductService {
         }
         // Get inventory
         if (ret != null) {
+            // TODO：简化init过程（如果无则新建，如果有则不动，避免两次查询）
             int inv = inventoryManager.getInventory(pid);
             if (inv < 0) inventoryManager.initInventory(pid, ret.getCount());
             else ret.setCount(inv);

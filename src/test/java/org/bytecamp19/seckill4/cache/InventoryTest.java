@@ -31,7 +31,7 @@ public class InventoryTest {
 
     @Test
     public void inventoryTest() {
-        int pid = 102233011;
+        long pid = 102233011;
         int count = 666333;
         int inv = inventoryManager.getInventory(pid);
         assertEquals(-1, inv);

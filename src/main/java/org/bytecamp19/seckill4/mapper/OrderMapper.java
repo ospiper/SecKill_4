@@ -16,5 +16,5 @@ import java.util.List;
 public interface OrderMapper extends BaseMapper<Order> {
 
     @Select("select a.*, b.detail from (select * from orders where uid = #{uid}) a left join products b on a.pid = b.pid")
-    List<OrderResult> getOrdersByUid(int uid);
+    List<OrderResult> getOrdersByUid(long uid);
 }

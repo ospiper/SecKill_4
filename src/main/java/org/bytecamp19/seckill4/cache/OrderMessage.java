@@ -10,8 +10,8 @@ import java.io.Serializable;
  */
 @Data
 public class OrderMessage implements Serializable {
-    private int uid;
-    private int pid;
+    private long uid;
+    private long pid;
     private int price;
     private String order_id;
 }

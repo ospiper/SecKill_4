@@ -30,14 +30,15 @@ public class LimitTest {
 
     @Test
     public void limitTest() {
-        int pid = 123456789;
-        int uid = 5443321;
+        long pid = 123456789;
+        long uid = 5443321;
         int res1 = limitManager.checkLimit(pid, uid);
         assertEquals(1, res1);
         int res2 = limitManager.checkLimit(pid, uid);
         assertEquals(0, res2);
-        Set<Integer> members = limitManager.getLimit(pid);
+        Set<Long> members = limitManager.getLimit(pid);
         assertEquals(1, members.size());
+        System.out.println(members);
         assertTrue(members.contains(uid));
         assertTrue(limitManager.removeLimit(pid));
         members = limitManager.getLimit(pid);
