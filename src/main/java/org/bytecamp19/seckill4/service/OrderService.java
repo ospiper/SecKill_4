@@ -204,6 +204,9 @@ public class OrderService {
             return ret;
         }
         else {
+            if (o.getStatus() == Order.PAID) {
+                return o;
+            }
             // 有查询到，直接更新数据库即可
             o.setStatus(Order.PAID);
             logger.debug("Found order in db");
@@ -244,8 +247,11 @@ public class OrderService {
      *
      */
     public void reset() {
+        // Clear inventory
         inventoryManager.clearInventory();
+        // Clear order limits
         limitManager.clearLimits();
+        // Clear orders table
         orderMapper.delete(null);
         mq.clear();
     }

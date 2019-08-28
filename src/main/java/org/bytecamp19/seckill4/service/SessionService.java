@@ -30,7 +30,7 @@ public class SessionService {
     private LayeringCacheManager cacheManager;
     private RedisTemplate<Object, Long> stringLongRedisTemplate;
     private HashOperations<Object, Object, Long> hashOperations;
-    private static final String hashName = "sess-cache:";
+    private static final String hashName = "sessionCache";
 
     public SessionService(SessionMapper sessionMapper, LayeringCacheManager cacheManager,
                           RedisTemplate<Object, Long> stringLongRedisTemplate) {
@@ -40,36 +40,49 @@ public class SessionService {
         this.hashOperations = stringLongRedisTemplate.opsForHash();
     }
 
+//    @CostLogger(LEVEL = CostLogger.Level.WARN)
+//    @DS("slave")
+//    public Session getSession(String sessionid) {
+//        LayeringCache cache = (LayeringCache)cacheManager.getCache("productCache");
+//        Session ret = null;
+//        if (cache != null) {
+//            Cache.ValueWrapper val = cache.get("session:" + sessionid);
+//            if (val != null) ret = (Session)val.get();
+//            // if cache misses
+//            if (ret == null) {
+//                long start = System.currentTimeMillis();
+//                ret = sessionMapper.selectOne(
+//                        new QueryWrapper<Session>()
+//                                .eq("sessionid", sessionid)
+//                );
+//                logger.warn("SQL query {} ms", (System.currentTimeMillis() - start));
+//                if (ret != null) {
+//                    cache.put("session:" + sessionid, ret);
+//                }
+//            }
+//        }
+//        return ret;
+//    }
     @CostLogger(LEVEL = CostLogger.Level.WARN)
     @DS("slave")
     public Session getSession(String sessionid) {
-        LayeringCache cache = (LayeringCache)cacheManager.getCache("productCache");
-        Session ret = null;
-        if (cache != null) {
-            Cache.ValueWrapper val = cache.get("session:" + sessionid);
-            if (val != null) ret = (Session)val.get();
-            // if cache misses
-            if (ret == null) {
-                long start = System.currentTimeMillis();
-                ret = sessionMapper.selectOne(
-                        new QueryWrapper<Session>()
-                                .eq("sessionid", sessionid)
-                );
-                logger.warn("SQL query {} ms", (System.currentTimeMillis() - start));
-                if (ret != null) {
-                    cache.put("session:" + sessionid, ret);
-                }
+        Long uid = hashOperations.get(hashName, sessionid);
+        if (uid == null) {
+            Session ret = sessionMapper.selectOne(
+                    new QueryWrapper<Session>()
+                        .eq("sessionid", sessionid)
+            );
+            if (ret != null) {
+                hashOperations.put(hashName, sessionid, ret.getUid());
+                return ret;
             }
+            else return null;
         }
-        return ret;
-    }
-
-    /* DO NOT USE THIS */
-    public void cacheAllSessions() {
-        if (hashOperations.size(hashName) == 5000000) return;
-        List<Session> sessions = sessionMapper.selectList(null);
-        for (Session s : sessions) {
-            hashOperations.put(hashName, s.getSessionid(), s.getUid());
+        else {
+            Session ret = new Session();
+            ret.setSessionid(sessionid);
+            ret.setUid(uid);
+            return ret;
         }
     }
 
