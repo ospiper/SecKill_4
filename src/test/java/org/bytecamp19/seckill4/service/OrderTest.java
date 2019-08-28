@@ -75,7 +75,7 @@ public class OrderTest {
     }
 
     @Test
-    public void placeOrderTest() {
+    public void placeOrderTest() throws ForbiddenException {
         Product product = productService.getProduct(pid);
         System.out.println(product);
         try {
@@ -99,7 +99,7 @@ public class OrderTest {
 
     /** Run this test WITHOUT consumer running!! */
     @Test
-    public void unWrittenPayTest() {
+    public void unWrittenPayTest() throws ForbiddenException {
         Product product = productService.getProduct(pid);
         try {
             OrderMessage message = orderService.placeOrder(uid, product);

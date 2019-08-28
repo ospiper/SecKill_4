@@ -32,14 +32,11 @@ public class InventoryTest {
     @Test
     public void inventoryTest() {
         long pid = 102233011;
-        int count = 666333;
-        int inv = inventoryManager.getInventory(pid);
-        assertEquals(-1, inv);
-        boolean set = inventoryManager.initInventory(pid, count);
-        int inv2 = inventoryManager.getInventory(pid);
-        assertEquals(count, inv2);
+        int count = 100;
+        Long inv = inventoryManager.getInventory(pid);
+        assertEquals(count, inv.intValue());
         int inv3 = inventoryManager.decInventory(pid);
-        assertEquals(inv2 - 1, inv3);
+        assertEquals(count - 1, inv3);
     }
 
 

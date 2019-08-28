@@ -2,6 +2,7 @@ package org.bytecamp19.seckill4;
 
 import org.bytecamp19.seckill4.cache.InventoryManager;
 import org.bytecamp19.seckill4.entity.Product;
+import org.bytecamp19.seckill4.error.ForbiddenException;
 import org.bytecamp19.seckill4.service.ProductService;
 import org.junit.After;
 import org.junit.Before;
@@ -33,7 +34,7 @@ public class CacheTest {
     }
 
     @Test
-    public void redisTest() {
+    public void redisTest() throws ForbiddenException {
         final long pid = 177620431;
         Product p = productService.getProduct(pid);
         int count = p.getCount();

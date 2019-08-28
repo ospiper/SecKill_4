@@ -29,11 +29,11 @@ public class InventoryManager {
         this.hashOperations = this.stringLongRedisTemplate.opsForHash();
     }
 
-    public boolean initInventory(long pid, int count) {
-        boolean ret = hashOperations.putIfAbsent(hashName, String.valueOf(pid), (long)count);
-        if (ret) logger.debug("Initialized inventory of product " + pid);
-        return ret;
-    }
+//    public boolean initInventory(long pid, int count) {
+//        boolean ret = hashOperations.putIfAbsent(hashName, String.valueOf(pid), (long)count);
+//        if (ret) logger.debug("Initialized inventory of product " + pid);
+//        return ret;
+//    }
 
 //    public int setInventory(int pid, int count) {
 //        hashOperations.put(hashName, String.valueOf(pid), count);
@@ -41,11 +41,16 @@ public class InventoryManager {
 //    }
 
 //    @CostLogger(LEVEL = CostLogger.Level.WARN)
-    public int getInventory(long pid) {
+    public Long getInventory(long pid) {
         logger.debug("Getting inventory for " + pid);
-        Object ret = hashOperations.get(hashName, String.valueOf(pid));
+        Long ret = hashOperations.get(hashName, String.valueOf(pid));
+        if (ret == null) {
+            logger.debug("Initialize inventory for {}: 100", pid);
+            hashOperations.putIfAbsent(hashName, String.valueOf(pid), 100L);
+            ret = hashOperations.get(hashName, String.valueOf(pid));
+        }
         logger.debug("Native inventory: " + ret);
-        return ret == null ? -1 : ((Long)ret).intValue();
+        return ret;
     }
 
     /**

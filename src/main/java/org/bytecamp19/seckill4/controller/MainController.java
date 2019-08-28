@@ -1,5 +1,6 @@
 package org.bytecamp19.seckill4.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.ibatis.annotations.Param;
 import org.bytecamp19.seckill4.cache.OrderMessage;
@@ -166,5 +167,14 @@ public class MainController {
             ret.put("code", 1);
         }
         return ret;
+    }
+
+    @GetMapping("/init")
+    public JSONObject init() {
+
+        sessionService.cacheAllSessions();
+        return new JSONObject() {{
+            put("code", 0);
+        }};
     }
 }

@@ -5,6 +5,7 @@ import org.bytecamp19.seckill4.cache.InventoryManager;
 import org.bytecamp19.seckill4.cache.LayeringCache;
 import org.bytecamp19.seckill4.cache.LayeringCacheManager;
 import org.bytecamp19.seckill4.entity.Product;
+import org.bytecamp19.seckill4.error.ForbiddenException;
 import org.bytecamp19.seckill4.interceptor.costlogger.CostLogger;
 import org.bytecamp19.seckill4.mapper.ProductMapper;
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Created by LLAP on 2019/8/4.
@@ -43,7 +45,7 @@ public class ProductService {
 //    )
     @CostLogger(LEVEL = CostLogger.Level.WARN)
     @DS("slave")
-    public Product getProduct(long pid) {
+    public Product getProduct(long pid) throws ForbiddenException {
         LayeringCache cache = (LayeringCache)cacheManager.getCache("productCache");
         Product ret = null;
         if (cache != null) {
@@ -62,9 +64,10 @@ public class ProductService {
         // Get inventory
         if (ret != null) {
             // TODO：简化init过程（如果无则新建，如果有则不动，避免两次查询）
-            int inv = inventoryManager.getInventory(pid);
-            if (inv < 0) inventoryManager.initInventory(pid, ret.getCount());
-            else ret.setCount(inv);
+            Long inv = inventoryManager.getInventory(pid);
+//            if (inv < 0) inventoryManager.initInventory(pid, ret.getCount());
+            if (inv == null) throw new ForbiddenException("Cannot initialize inventory");
+            else ret.setCount(inv.intValue());
         }
         return ret;
     }
