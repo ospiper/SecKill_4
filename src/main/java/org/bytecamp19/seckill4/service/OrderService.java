@@ -100,10 +100,10 @@ public class OrderService {
     }
 
     /**
-     *
-     * @param uid
-     * @param p
-     * @return
+     * Place an order
+     * @param uid user id
+     * @param p product entity
+     * @return An OrderMessage that has been emitted to MQ, null if not ordered.
      * @throws ForbiddenException
      */
 //    @CostLogger(LEVEL = CostLogger.Level.ERROR)
@@ -144,9 +144,9 @@ public class OrderService {
     }
 
     /**
-     *
-     * @param orderId
-     * @return
+     * Get Order from cache/DB
+     * @param orderId order id wrapper
+     * @return Order
      */
     @Cacheable(
             key = "'order:' + #orderId",
@@ -164,9 +164,9 @@ public class OrderService {
     }
 
     /**
-     *
-     * @param orderId
-     * @return
+     * Request a pay token from token server
+     * @param orderId order id wrapper
+     * @return token
      */
     public String getToken(OrderIdWrapper orderId) {
         JSONObject reqData = new JSONObject();
@@ -183,6 +183,11 @@ public class OrderService {
         return retJson == null ? null : retJson.getString("token");
     }
 
+    /**
+     * Pay an order
+     * @param orderId order id
+     * @return Order entity (might be an uncompleted one)
+     */
     public Order payOrder(OrderIdWrapper orderId) {
         Order o = getOrder(orderId);
         if (o == null) {
@@ -220,6 +225,11 @@ public class OrderService {
         // TODO: 3. 支付时如果没查到order，需要向队列推送一条标记，该订单已经支付过（并记录支付token），在worker写数据时查询该标记并更新数据。
     }
 
+    /**
+     * Get results of specified user
+     * @param uid user id
+     * @return a list of orders that the user has placed
+     */
     public List<OrderResult> getOrdersByUid(long uid) {
         mq.waitForConsumer();
         return orderMapper.getOrdersByUid(uid);

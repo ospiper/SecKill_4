@@ -63,7 +63,7 @@ public class ProductService {
         }
         // Get inventory
         if (ret != null) {
-            // TODO：简化init过程（如果无则新建，如果有则不动，避免两次查询）
+            // 简化init过程（如果无则新建，如果有则不动，避免两次查询）
             Long inv = inventoryManager.getInventory(pid);
 //            if (inv < 0) inventoryManager.initInventory(pid, ret.getCount());
             if (inv == null) throw new ForbiddenException("Cannot initialize inventory");

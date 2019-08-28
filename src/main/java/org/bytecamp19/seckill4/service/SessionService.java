@@ -64,6 +64,7 @@ public class SessionService {
         return ret;
     }
 
+    /* DO NOT USE THIS */
     public void cacheAllSessions() {
         if (hashOperations.size(hashName) == 5000000) return;
         List<Session> sessions = sessionMapper.selectList(null);
