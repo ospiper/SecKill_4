@@ -117,7 +117,15 @@ public class MainController {
             throw new ForbiddenException("Invalid order_id");
         }
         getSession(sessionId, uid);
-
+        Product product = productService.getProduct(id.getPid());
+        if (product == null) {
+            throw new ForbiddenException("Product not exist");
+        }
+        else {
+            if (product.getPrice() != id.getPrice()) {
+                throw new ForbiddenException("Order_id not valid");
+            }
+        }
         Order o = orderService.payOrder(id);
         JSONObject ret = new JSONObject();
         if (o != null) {
