@@ -1,4 +1,5 @@
 HELP.md
+config.js
 node_modules
 venv
 target/
