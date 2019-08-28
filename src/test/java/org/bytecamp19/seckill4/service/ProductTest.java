@@ -1,6 +1,7 @@
 package org.bytecamp19.seckill4.service;
 
 import org.bytecamp19.seckill4.entity.Product;
+import org.bytecamp19.seckill4.error.ForbiddenException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,11 +17,11 @@ public class ProductTest {
     @Autowired
     private ProductService productService;
 
-    private final int pid = 177620431;
-    private final int pid_1 = 1111111;
+    private final long pid = 177620431;
+    private final long pid_1 = 1111111;
 
     @Test
-    public void getProductTest(){
+    public void getProductTest() throws ForbiddenException {
         // 验证正确pid
         Product product = productService.getProduct(pid);
         assertNotNull(product);

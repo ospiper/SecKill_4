@@ -1,11 +1,7 @@
 package org.bytecamp19.seckill4.config;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.bytecamp19.seckill4.cache.message.CacheMessageListener;
 import org.bytecamp19.seckill4.cache.LayeringCacheManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -14,16 +10,16 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
-import java.net.UnknownHostException;
+import javax.annotation.Resource;
 
 /**
  * Created by LLAP on 2019/8/16.
@@ -48,9 +44,9 @@ public class CacheRedisCaffeineAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(name = "stringKeyRedisTemplate")
-    public RedisTemplate<Object, Object> stringKeyRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    public RedisTemplate<Object, Object> stringKeyRedisTemplate(LettuceConnectionFactory lettuceConnectionFactory) {
         RedisTemplate<Object, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(redisConnectionFactory);
+        template.setConnectionFactory(lettuceConnectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
         return template;
@@ -58,26 +54,26 @@ public class CacheRedisCaffeineAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(name = "stringRedisTemplate")
-    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        return new StringRedisTemplate(redisConnectionFactory);
+    public StringRedisTemplate stringRedisTemplate(LettuceConnectionFactory lettuceConnectionFactory) {
+        return new StringRedisTemplate(lettuceConnectionFactory);
     }
 
     @Bean
-    @ConditionalOnMissingBean(name = "stringIntegerRedisTemplate")
-    public RedisTemplate<Object, Integer> stringIntegerRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        RedisTemplate<Object, Integer> template = new RedisTemplate<>();
-        RedisSerializer<Integer> serializer = new RedisSerializer<Integer>() {
+    @ConditionalOnMissingBean(name = "stringLongRedisTemplate")
+    public RedisTemplate<Object, Long> stringLongRedisTemplate(LettuceConnectionFactory lettuceConnectionFactory) {
+        RedisTemplate<Object, Long> template = new RedisTemplate<>();
+        RedisSerializer<Long> serializer = new RedisSerializer<Long>() {
             @Override
-            public byte[] serialize(Integer integer) throws SerializationException {
+            public byte[] serialize(Long integer) throws SerializationException {
                 return integer.toString().getBytes();
             }
 
             @Override
-            public Integer deserialize(byte[] bytes) throws SerializationException {
-                return Integer.valueOf(new String(bytes));
+            public Long deserialize(byte[] bytes) throws SerializationException {
+                return Long.valueOf(new String(bytes));
             }
         };
-        template.setConnectionFactory(redisConnectionFactory);
+        template.setConnectionFactory(lettuceConnectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
         template.setHashValueSerializer(serializer);

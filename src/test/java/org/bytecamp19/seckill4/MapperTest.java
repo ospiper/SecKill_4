@@ -26,7 +26,7 @@ public class MapperTest {
     @Test
     public void testSessionSelect() {
         String sid = "ab5c53d8e094263412ffdfe524ddba0d";
-        final int uid = 175230;
+        final long uid = 175230;
         Session s = sessionMapper.selectById(sid);
         assertEquals(s.getUid(), uid);
         assertEquals(s.getSessionid(), sid);
@@ -39,7 +39,7 @@ public class MapperTest {
 
     @Test
     public void testProductSelect() {
-        final int pid = 177620431;
+        final long pid = 177620431;
         Product p = productMapper.selectById(pid);
         System.out.println(p);
         assertEquals(p.getPid(), pid);

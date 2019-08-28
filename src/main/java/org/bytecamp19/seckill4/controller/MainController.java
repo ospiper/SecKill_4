@@ -1,5 +1,6 @@
 package org.bytecamp19.seckill4.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.ibatis.annotations.Param;
 import org.bytecamp19.seckill4.cache.OrderMessage;
@@ -36,7 +37,7 @@ public class MainController {
         this.orderService = orderService;
     }
 
-    private Session getSession(String sessionId, Integer uid) throws ForbiddenException {
+    private Session getSession(String sessionId, Long uid) throws ForbiddenException {
         Session session = sessionService.getSession(sessionId);
         logger.debug("session = " + session);
         if (session == null) {
@@ -49,7 +50,7 @@ public class MainController {
     }
 
     @GetMapping("product")
-    public Product getProduct(@Param("pid") Integer pid,
+    public Product getProduct(@Param("pid") Long pid,
                               @RequestHeader("sessionid") String sessionId) throws ForbiddenException {
         if (pid == null) {
             throw new ForbiddenException("pid not given");
@@ -68,8 +69,8 @@ public class MainController {
     public JSONObject placeOrder(@RequestBody JSONObject json,
                                  @RequestHeader("sessionid") String sessionId)
             throws ForbiddenException {
-        Integer pid = json.getInteger("pid");
-        Integer uid = json.getInteger("uid");
+        Long pid = json.getLong("pid");
+        Long uid = json.getLong("uid");
         if (uid == null || pid == null || sessionId == null || sessionId.isEmpty()) {
             throw new ForbiddenException("pid / uid / session not given");
         }
@@ -104,7 +105,7 @@ public class MainController {
     public JSONObject payOrder(@RequestBody JSONObject json,
                                @RequestHeader("sessionid") String sessionId)
             throws ForbiddenException {
-        Integer uid = json.getInteger("uid");
+        Long uid = json.getLong("uid");
         Integer price = json.getInteger("price");
         String orderId = json.getString("order_id");
         if (uid == null || price == null || orderId == null || sessionId == null || sessionId.isEmpty()) {
@@ -116,7 +117,15 @@ public class MainController {
             throw new ForbiddenException("Invalid order_id");
         }
         getSession(sessionId, uid);
-
+        Product product = productService.getProduct(id.getPid());
+        if (product == null) {
+            throw new ForbiddenException("Product not exist");
+        }
+        else {
+            if (product.getPrice() != id.getPrice()) {
+                throw new ForbiddenException("Order_id not valid");
+            }
+        }
         Order o = orderService.payOrder(id);
         JSONObject ret = new JSONObject();
         if (o != null) {
@@ -135,7 +144,7 @@ public class MainController {
     }
 
     @GetMapping("result")
-    public JSONObject getResult(@Param("uid") Integer uid,
+    public JSONObject getResult(@Param("uid") Long uid,
                                 @RequestHeader("sessionid") String sessionId)
             throws ForbiddenException {
         if (uid == null){
@@ -166,5 +175,14 @@ public class MainController {
             ret.put("code", 1);
         }
         return ret;
+    }
+
+    @GetMapping("/init")
+    public JSONObject init() {
+
+        sessionService.cacheAllSessions();
+        return new JSONObject() {{
+            put("code", 0);
+        }};
     }
 }

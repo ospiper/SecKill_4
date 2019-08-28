@@ -62,7 +62,7 @@ public class OrderService {
      * @param price product price
      * @return order_id
      */
-    public String generateOrderId(int pid, int uid, int price) {
+    public String generateOrderId(long pid, long uid, int price) {
         // ${毫秒时间戳}.${uid}.${pid}.${[1-1000]随机数}.${每一位数字位异或后再异或价格}
         int rand = (int)(random.nextDouble() * 1000);
         StringBuilder buffer = new StringBuilder();
@@ -87,7 +87,7 @@ public class OrderService {
      * @param price price of the product
      * @return pid of the product, &lt; 0 if not valid; -1 (length), -2(uid), -3(check / price)
      */
-    public OrderIdWrapper validateOrderId(String orderId, int uid, int price) {
+    public OrderIdWrapper validateOrderId(String orderId, long uid, long price) {
         OrderIdWrapper id = null;
         try {
             id = new OrderIdWrapper(orderId);
@@ -100,14 +100,14 @@ public class OrderService {
     }
 
     /**
-     *
-     * @param uid
-     * @param p
-     * @return
+     * Place an order
+     * @param uid user id
+     * @param p product entity
+     * @return An OrderMessage that has been emitted to MQ, null if not ordered.
      * @throws ForbiddenException
      */
 //    @CostLogger(LEVEL = CostLogger.Level.ERROR)
-    public OrderMessage placeOrder(int uid, Product p) throws ForbiddenException {
+    public OrderMessage placeOrder(long uid, Product p) throws ForbiddenException {
         // Check limits
         int limit = limitManager.checkLimit(p.getPid(), uid);
         if (limit == -1) throw new ForbiddenException("Cannot check limits");
@@ -144,9 +144,9 @@ public class OrderService {
     }
 
     /**
-     *
-     * @param orderId
-     * @return
+     * Get Order from cache/DB
+     * @param orderId order id wrapper
+     * @return Order
      */
     @Cacheable(
             key = "'order:' + #orderId",
@@ -154,14 +154,19 @@ public class OrderService {
             cacheManager = "cacheManager"
     )
     @DS("slave")
-    public Order getOrder(String orderId) {
-        return orderMapper.selectById(orderId);
+    public Order getOrder(OrderIdWrapper orderId) {
+        QueryWrapper<Order> wrapper = new QueryWrapper<>();
+        wrapper.eq("order_id", orderId.getOrderId());
+        wrapper.eq("uid", orderId.getUid());
+        wrapper.eq("price", orderId.getPrice());
+        wrapper.eq("pid", orderId.getPid());
+        return orderMapper.selectOne(wrapper);
     }
 
     /**
-     *
-     * @param orderId
-     * @return
+     * Request a pay token from token server
+     * @param orderId order id wrapper
+     * @return token
      */
     public String getToken(OrderIdWrapper orderId) {
         JSONObject reqData = new JSONObject();
@@ -178,8 +183,13 @@ public class OrderService {
         return retJson == null ? null : retJson.getString("token");
     }
 
+    /**
+     * Pay an order
+     * @param orderId order id
+     * @return Order entity (might be an uncompleted one)
+     */
     public Order payOrder(OrderIdWrapper orderId) {
-        Order o = getOrder(orderId.getOrderId());
+        Order o = getOrder(orderId);
         if (o == null) {
             Order ret = new Order();
             ret.setStatus(Order.PAID);
@@ -215,7 +225,12 @@ public class OrderService {
         // TODO: 3. 支付时如果没查到order，需要向队列推送一条标记，该订单已经支付过（并记录支付token），在worker写数据时查询该标记并更新数据。
     }
 
-    public List<OrderResult> getOrdersByUid(int uid) {
+    /**
+     * Get results of specified user
+     * @param uid user id
+     * @return a list of orders that the user has placed
+     */
+    public List<OrderResult> getOrdersByUid(long uid) {
         mq.waitForConsumer();
         return orderMapper.getOrdersByUid(uid);
     }

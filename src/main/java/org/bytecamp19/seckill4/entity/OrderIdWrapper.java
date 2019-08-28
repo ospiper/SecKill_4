@@ -12,8 +12,8 @@ import lombok.Getter;
 public class OrderIdWrapper {
     private final String orderId;
     private final long timestamp;
-    private final int uid;
-    private final int pid;
+    private final long uid;
+    private final long pid;
     private final int rand;
     private final int price;
     private final int check;
@@ -22,8 +22,8 @@ public class OrderIdWrapper {
         String[] segments = orderId.split("\\.");
         if (segments.length != 5) throw new IllegalArgumentException("Invalid format");
         timestamp = Long.parseLong(segments[0]);
-        uid = Integer.parseInt(segments[1]);
-        pid = Integer.parseInt(segments[2]);
+        uid = Long.parseLong(segments[1]);
+        pid = Long.parseLong(segments[2]);
         rand = Integer.parseInt(segments[3]);
         check = Integer.parseInt(segments[4]);
         int o_check = 0;
@@ -34,5 +34,6 @@ public class OrderIdWrapper {
             }
         }
         price = check ^ o_check;
+        if (price < 0) throw new IllegalArgumentException("Invalid argument");
     }
 }

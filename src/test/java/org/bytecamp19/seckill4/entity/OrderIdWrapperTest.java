@@ -21,8 +21,8 @@ public class OrderIdWrapperTest {
 
     @Test
     public void testOrderIdGeneration() {
-        int pid = 233;
-        int uid = 817;
+        long pid = 233;
+        long uid = 817;
         int price = 1926;
         String orderId = orderService.generateOrderId(pid, uid, price);
 //        System.out.println(orderId);

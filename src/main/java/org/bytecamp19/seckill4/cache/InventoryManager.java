@@ -1,10 +1,8 @@
 package org.bytecamp19.seckill4.cache;
 
 import org.bytecamp19.seckill4.cache.lock.RedisDistributedLock;
-import org.bytecamp19.seckill4.interceptor.costlogger.CostLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,20 +20,20 @@ import java.util.Set;
 @AutoConfigureAfter(RedisTemplate.class)
 public class InventoryManager {
     private Logger logger = LoggerFactory.getLogger(InventoryManager.class);
-    private RedisTemplate<Object, Integer> stringIntegerRedisTemplate;
-    private HashOperations<Object, Object, Integer> hashOperations = null;
+    private RedisTemplate<Object, Long> stringLongRedisTemplate;
+    private HashOperations<Object, Object, Long> hashOperations = null;
     private static final String hashName = "inventory";
 
-    public InventoryManager(RedisTemplate<Object, Integer> stringIntegerRedisTemplate) {
-        this.stringIntegerRedisTemplate = stringIntegerRedisTemplate;
-        this.hashOperations = this.stringIntegerRedisTemplate.opsForHash();
+    public InventoryManager(RedisTemplate<Object, Long> stringLongRedisTemplate) {
+        this.stringLongRedisTemplate = stringLongRedisTemplate;
+        this.hashOperations = this.stringLongRedisTemplate.opsForHash();
     }
 
-    public boolean initInventory(int pid, int count) {
-        boolean ret = hashOperations.putIfAbsent(hashName, String.valueOf(pid), count);
-        if (ret) logger.debug("Initialized inventory of product " + pid);
-        return ret;
-    }
+//    public boolean initInventory(long pid, int count) {
+//        boolean ret = hashOperations.putIfAbsent(hashName, String.valueOf(pid), (long)count);
+//        if (ret) logger.debug("Initialized inventory of product " + pid);
+//        return ret;
+//    }
 
 //    public int setInventory(int pid, int count) {
 //        hashOperations.put(hashName, String.valueOf(pid), count);
@@ -43,11 +41,16 @@ public class InventoryManager {
 //    }
 
 //    @CostLogger(LEVEL = CostLogger.Level.WARN)
-    public int getInventory(int pid) {
+    public Long getInventory(long pid) {
         logger.debug("Getting inventory for " + pid);
-        Object ret = hashOperations.get(hashName, String.valueOf(pid));
+        Long ret = hashOperations.get(hashName, String.valueOf(pid));
+        if (ret == null) {
+            logger.debug("Initialize inventory for {}: 100", pid);
+            hashOperations.putIfAbsent(hashName, String.valueOf(pid), 100L);
+            ret = hashOperations.get(hashName, String.valueOf(pid));
+        }
         logger.debug("Native inventory: " + ret);
-        return ret == null ? -1 : (Integer)ret;
+        return ret;
     }
 
     /**
@@ -56,9 +59,9 @@ public class InventoryManager {
      * @return updated inventory, -1(insufficient products), -2(product not found)
      */
 //    @CostLogger(LEVEL = CostLogger.Level.WARN)
-    public int decInventory(int pid) {
+    public int decInventory(long pid) {
         String lockKey = "Inventory:" + pid;
-        RedisDistributedLock redisLock = new RedisDistributedLock(stringIntegerRedisTemplate);
+        RedisDistributedLock redisLock = new RedisDistributedLock(stringLongRedisTemplate);
         int inv = -1;
         int ret = -1;
 //        while (!redisLock.lock(lockKey, 1500L));
@@ -83,16 +86,16 @@ public class InventoryManager {
     }
 
     public void clearInventory() {
-        stringIntegerRedisTemplate.delete(hashName);
+        stringLongRedisTemplate.delete(hashName);
     }
 
-    public void deleteInventory(int pid) {
+    public void deleteInventory(long pid) {
         hashOperations.delete(hashName, String.valueOf(pid));
     }
 
-    public Map<Object, Integer> getInventories() {
+    public Map<Object, Long> getInventories() {
         // ONLY FOR TESTING, DO NOT USE IT IN THE APPLICATION!
-        Map<Object, Integer> ret = new HashMap<>();
+        Map<Object, Long> ret = new HashMap<>();
         Set<Object> keys = hashOperations.keys(hashName);
         if (keys == null) return ret;
         for (Object key : keys) {

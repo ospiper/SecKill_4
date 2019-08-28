@@ -13,10 +13,10 @@ userAgent = r'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 host = 'http://127.0.0.1:8080'
 reset_token = '123456'
 
-concurrency = 100
-order_amount = 100
-product_amount = 100
-user_amount = 100
+concurrency = 150
+order_amount = 150
+product_amount = 1
+user_amount = 150
 
 user_list = []
 user_dict = {}
@@ -26,7 +26,7 @@ pipe = queue.Queue()
 userQueue = queue.Queue()
 request_results = []
 
-conn = psycopg2.connect(database="seckill", user="postgres", password="", host="container.ll-ap.cn", port="5432")
+conn = psycopg2.connect(database="seckill", user="seckill", password="seckill", host="container.ll-ap.cn", port="5001")
 
 print("Database connected successfully")
 
@@ -203,7 +203,7 @@ if __name__ == '__main__':
     product_sold_count = {}
     userSet = set()
     for i in range(order_amount):
-        run_all()
+        run_all(i)
     for i in range(order_amount):
         item = pipe.get()
         for res in item:

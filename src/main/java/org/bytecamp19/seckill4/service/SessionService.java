@@ -10,7 +10,13 @@ import org.bytecamp19.seckill4.mapper.SessionMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * Created by LLAP on 2019/8/11.
@@ -22,10 +28,16 @@ public class SessionService {
 
     private SessionMapper sessionMapper;
     private LayeringCacheManager cacheManager;
+    private RedisTemplate<Object, Long> stringLongRedisTemplate;
+    private HashOperations<Object, Object, Long> hashOperations;
+    private static final String hashName = "sess-cache:";
 
-    public SessionService(SessionMapper sessionMapper, LayeringCacheManager cacheManager) {
+    public SessionService(SessionMapper sessionMapper, LayeringCacheManager cacheManager,
+                          RedisTemplate<Object, Long> stringLongRedisTemplate) {
         this.sessionMapper = sessionMapper;
         this.cacheManager = cacheManager;
+        this.stringLongRedisTemplate = stringLongRedisTemplate;
+        this.hashOperations = stringLongRedisTemplate.opsForHash();
     }
 
     @CostLogger(LEVEL = CostLogger.Level.WARN)
@@ -50,6 +62,15 @@ public class SessionService {
             }
         }
         return ret;
+    }
+
+    /* DO NOT USE THIS */
+    public void cacheAllSessions() {
+        if (hashOperations.size(hashName) == 5000000) return;
+        List<Session> sessions = sessionMapper.selectList(null);
+        for (Session s : sessions) {
+            hashOperations.put(hashName, s.getSessionid(), s.getUid());
+        }
     }
 
 }
