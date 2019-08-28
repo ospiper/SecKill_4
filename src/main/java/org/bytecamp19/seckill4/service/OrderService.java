@@ -111,7 +111,7 @@ public class OrderService {
         // Check limits
         int limit = limitManager.checkLimit(p.getPid(), uid);
         if (limit == -1) throw new ForbiddenException("Cannot check limits");
-        if (limit == 0) return null;
+        if (limit == 0) throw new ForbiddenException("Repeat orders");
 
         // Update inventory
         int inv = inventoryManager.decInventory(p.getPid());
