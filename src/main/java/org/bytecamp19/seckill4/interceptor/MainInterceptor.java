@@ -31,7 +31,7 @@ public class MainInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 //        logger.debug("Prehandling " + request.getRequestURI());
         logger.info(request.getMethod() + " " + request.getRequestURI());
-        String ip = request.getHeader("x-forwarded-for");
+        String ip = request.getHeader("x-forwarded-for").split(",")[0].trim();
         String ua = request.getHeader("user-agent");
         String sessionid = request.getHeader("sessionid");
         boolean ret = checkHeaders(ip, ua, sessionid);
