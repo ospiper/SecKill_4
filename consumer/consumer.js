@@ -1,19 +1,11 @@
 const redis = require('redis');
 const {Pool} = require('pg');
 const axios = require('axios');
-
-const redisHost = 'container.ll-ap.cn';
-const redisPort = 6379;
-const pgHost = 'container.ll-ap.cn';
-const pgPort = 5432;
-const pgUser = 'postgres';
-const pgPass = '';
-const pgDatabase = 'seckill';
-const tokenServer = 'http://127.0.0.1:8889';
+const config = require('./config');
 
 // create an axios instance
 const request = axios.create({
-    baseURL: tokenServer, // api 的 base_url
+    baseURL: config.tokenServer, // api 的 base_url
     timeout: 1500 // request timeout
 });
 
@@ -43,11 +35,11 @@ request.interceptors.response.use(
 );
 
 const pool = new Pool({
-    user: pgUser,
-    host: pgHost,
-    database: pgDatabase,
-    password: pgPass,
-    port: pgPort,
+    user: config.pg.user,
+    host: config.pg.host,
+    database: config.pg.database,
+    password: config.pg.pass,
+    port: config.pg.port,
     max: 5
 });
 console.log("Database connected successfully");
@@ -61,7 +53,7 @@ pool.on('error', (err, client) => {
 const queueName = "orderQueue";
 const payHashName = "paidOrder";
 const createOrderSql = "INSERT INTO orders (order_id, uid, pid, price, status, token) values ($1, $2, $3, $4, $5, $6)";
-client = redis.createClient(redisPort, redisHost);
+client = redis.createClient(config.redis.port, config.redis.host);
 
 client.on("error", err => {
     console.error(err);
@@ -161,7 +153,15 @@ async function startConsume() {
         // console.log(res);
         if (res && res.length > 1) {
             console.log("Received 1 message");
-            let message = JSON.parse(res[1]);
+
+            let message = undefined;
+            try {
+                message = JSON.parse(res[1]);
+            }
+            catch (e) {
+                console.error(e);
+            }
+            if (!message) continue;
             console.log(message);
             let cachedToken = false;
             let payToken = await getPayToken(message.order_id);
