@@ -6,15 +6,15 @@ import psycopg2
 import time
 import queue
 import math
-
+from .config import pg
 userAgent = r'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 ' \
             r'Safari/537.36 '
 
-host = 'http://127.0.0.1:8080'
+host = 'http://10.108.18.87'
 reset_token = '123456'
 
-concurrency = 150
-order_amount = 150
+concurrency = 1
+order_amount = 1
 product_amount = 1
 user_amount = 150
 
@@ -26,12 +26,16 @@ pipe = queue.Queue()
 userQueue = queue.Queue()
 request_results = []
 
-conn = psycopg2.connect(database="seckill", user="seckill", password="seckill", host="container.ll-ap.cn", port="5001")
+conn = psycopg2.connect(database=pg['database'],
+                        user=pg['user'],
+                        password=pg['pass'],
+                        host=pg['host'],
+                        port=pg['port'])
 
 print("Database connected successfully")
 
 
-def get_user_list(count, random_sort=True):
+def get_user_list(count, random_sort=False):
     assert count > 0
     print('Retrieving user list')
     cur = conn.cursor()
@@ -49,7 +53,7 @@ def get_user_list(count, random_sort=True):
         user_dict[row[0]] = user
 
 
-def get_product_list(count, random_sort=True):
+def get_product_list(count, random_sort=False):
     assert count > 0
     print('Retrieving product list')
     cur = conn.cursor()

@@ -1,7 +1,11 @@
-const redis = require('redis');
 const {Pool} = require('pg');
 const axios = require('axios');
 const config = require('./config');
+const RedisClustr = require('redis-clustr');
+
+const client = new RedisClustr({
+    servers: config.redis.servers
+});
 
 // create an axios instance
 const request = axios.create({
@@ -53,7 +57,7 @@ pool.on('error', (err, client) => {
 const queueName = "orderQueue";
 const payHashName = "paidOrder";
 const createOrderSql = "INSERT INTO orders (order_id, uid, pid, price, status, token) values ($1, $2, $3, $4, $5, $6)";
-client = redis.createClient(config.redis.port, config.redis.host);
+// client = redis.createClient(config.redis.port, config.redis.host);
 
 client.on("error", err => {
     console.error(err);
@@ -101,7 +105,7 @@ function deleteCachedToken(orderId) {
 
 async function requestPayToken(orderId, uid, price) {
     const res = await request({
-        url: 'http://127.0.0.1:8889/token',
+        url: '/token',
         method: 'post',
         data: {
             order_id: orderId,
