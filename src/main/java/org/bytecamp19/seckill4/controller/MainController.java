@@ -168,6 +168,7 @@ public class MainController {
             throw new ForbiddenException("Reset token mismatched");
         }
         JSONObject ret = new JSONObject();
+        // Clear orders
         orderService.reset();
         if (token.equals(resetToken)){
             ret.put("code", 0);
@@ -177,12 +178,4 @@ public class MainController {
         return ret;
     }
 
-    @GetMapping("/init")
-    public JSONObject init() {
-
-        sessionService.cacheAllSessions();
-        return new JSONObject() {{
-            put("code", 0);
-        }};
-    }
 }
