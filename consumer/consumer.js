@@ -70,7 +70,7 @@ client.on('connect', res => {
 
 function consume() {
     return new Promise((resolve, reject) => {
-        client.brpop(queueName, 10, (err, res) => {
+        client.brpop(queueName, 3, (err, res) => {
             if (err) {
                 reject(err);
             }
@@ -210,7 +210,7 @@ async function end() {
     closed = true;
     console.log("Bye");
     client.quit((err, res) => {
-        console.log("Disconnecting redis cluster")
+        console.log("Disconnected redis cluster")
     });
     await pool.end().catch(err => {
         console.error(err);
