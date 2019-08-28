@@ -10,6 +10,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
@@ -17,6 +18,8 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+
+import javax.annotation.Resource;
 
 /**
  * Created by LLAP on 2019/8/16.
@@ -41,9 +44,9 @@ public class CacheRedisCaffeineAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(name = "stringKeyRedisTemplate")
-    public RedisTemplate<Object, Object> stringKeyRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    public RedisTemplate<Object, Object> stringKeyRedisTemplate(LettuceConnectionFactory lettuceConnectionFactory) {
         RedisTemplate<Object, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(redisConnectionFactory);
+        template.setConnectionFactory(lettuceConnectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
         return template;
@@ -51,13 +54,13 @@ public class CacheRedisCaffeineAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(name = "stringRedisTemplate")
-    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
-        return new StringRedisTemplate(redisConnectionFactory);
+    public StringRedisTemplate stringRedisTemplate(LettuceConnectionFactory lettuceConnectionFactory) {
+        return new StringRedisTemplate(lettuceConnectionFactory);
     }
 
     @Bean
     @ConditionalOnMissingBean(name = "stringLongRedisTemplate")
-    public RedisTemplate<Object, Long> stringLongRedisTemplate(RedisConnectionFactory redisConnectionFactory) {
+    public RedisTemplate<Object, Long> stringLongRedisTemplate(LettuceConnectionFactory lettuceConnectionFactory) {
         RedisTemplate<Object, Long> template = new RedisTemplate<>();
         RedisSerializer<Long> serializer = new RedisSerializer<Long>() {
             @Override
@@ -70,7 +73,7 @@ public class CacheRedisCaffeineAutoConfiguration {
                 return Long.valueOf(new String(bytes));
             }
         };
-        template.setConnectionFactory(redisConnectionFactory);
+        template.setConnectionFactory(lettuceConnectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setHashKeySerializer(new StringRedisSerializer());
         template.setHashValueSerializer(serializer);
