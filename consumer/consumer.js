@@ -209,7 +209,9 @@ async function end() {
     }
     closed = true;
     console.log("Bye");
-    client.end(true);
+    client.quit((err, res) => {
+        console.log("Disconnecting redis cluster")
+    });
     await pool.end().catch(err => {
         console.error(err);
     });
