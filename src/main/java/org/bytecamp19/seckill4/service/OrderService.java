@@ -273,7 +273,7 @@ public class OrderService {
 //            }
 //        }
 //        return ret;
-//        mq.waitForConsumer();
+        mq.waitForConsumer();
 ////        return orderMapper.getOrdersByUid(uid);
         List<OrderResult> ret = new ArrayList<>();
         List<Order> orders = orderMapper.selectList(new QueryWrapper<Order>().eq("uid", uid));
