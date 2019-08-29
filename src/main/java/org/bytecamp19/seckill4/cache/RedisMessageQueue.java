@@ -21,6 +21,7 @@ public class RedisMessageQueue {
     private ListOperations<String, String> listOperations;
     private HashOperations<String, String, String> hashOperations;
     private boolean cleared = false;
+    private boolean clearing = false;
 
     private static final String queueName = "orderQueue";
     private static final String payHashName = "paidOrder";
@@ -50,10 +51,14 @@ public class RedisMessageQueue {
 
     public void waitForConsumer() {
         if (cleared) return;
-        Long size = null;
-        while (size == null || size > 0) {
-            size = listOperations.size(queueName);
+        if (!clearing) {
+            clearing = true;
+            Long size = null;
+            while (size == null || size > 0) {
+                size = listOperations.size(queueName);
+            }
+            cleared = true;
         }
-        cleared = true;
+        while (!cleared);
     }
 }

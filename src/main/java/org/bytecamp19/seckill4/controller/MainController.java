@@ -2,6 +2,8 @@ package org.bytecamp19.seckill4.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.PropertyNamingStrategy;
+import com.alibaba.fastjson.serializer.SerializeConfig;
 import org.apache.ibatis.annotations.Param;
 import org.bytecamp19.seckill4.cache.OrderMessage;
 import org.bytecamp19.seckill4.entity.*;
@@ -38,6 +40,7 @@ public class MainController {
     }
 
     private Session getSession(String sessionId, Long uid) throws ForbiddenException {
+        if (uid != null && uid < 0) throw new ForbiddenException("uid");
         Session session = sessionService.getSession(sessionId);
         logger.debug("session = " + session);
         if (session == null) {
@@ -55,6 +58,7 @@ public class MainController {
         if (pid == null) {
             throw new ForbiddenException("pid not given");
         }
+        if (pid < 0) throw new ForbiddenException("pid");
         logger.debug("Params: pid: " + pid);
         getSession(sessionId, null);
         Product ret = productService.getProduct(pid);
@@ -74,6 +78,7 @@ public class MainController {
         if (uid == null || pid == null || sessionId == null || sessionId.isEmpty()) {
             throw new ForbiddenException("pid / uid / session not given");
         }
+        if (uid < 0 || pid < 0) throw new ForbiddenException("uid/pid");
         logger.debug("Params: pid: " + pid + ", uid: " + uid);
         // Check session
         getSession(sessionId, uid);
@@ -88,7 +93,7 @@ public class MainController {
         }
 
         // Place an order
-        OrderMessage order = orderService.placeOrder(uid, product);
+        Order order = orderService.placeOrder(uid, product);
         // Returns null if there is no remaining products
 
         JSONObject ret = new JSONObject();
@@ -97,7 +102,7 @@ public class MainController {
             return ret;
         }
         ret.put("code", 0);
-        ret.put("order_id", order.getOrder_id());
+        ret.put("order_id", order.getOrderId());
         return ret;
     }
 
@@ -111,6 +116,7 @@ public class MainController {
         if (uid == null || price == null || orderId == null || sessionId == null || sessionId.isEmpty()) {
             throw new ForbiddenException("pid / price / order_id / session id not given");
         }
+        if (uid < 0 || price < 0) throw new ForbiddenException("uid/price");
         logger.debug("Params: uid: " + uid + ", price: " + price + ", order_id: " + orderId);
         OrderIdWrapper id = orderService.validateOrderId(orderId, uid, price);
         if (id == null) {
@@ -150,11 +156,13 @@ public class MainController {
         if (uid == null){
             throw new ForbiddenException("uid not given");
         }
+        if (uid < 0) throw new ForbiddenException("uid");
         logger.debug("Params: uid: " + uid);
+        getSession(sessionId, uid);
         JSONObject ret = new JSONObject();
+
         List<OrderResult> data = orderService.getOrdersByUid(uid);
         ret.put("data", data);
-        getSession(sessionId, uid);
         return ret;
     }
 
@@ -176,6 +184,12 @@ public class MainController {
             ret.put("code", 1);
         }
         return ret;
+    }
+
+    @GetMapping("prepare")
+    public String prepare() {
+        productService.prepare();
+        return "ok";
     }
 
 }

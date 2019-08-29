@@ -1,31 +1,32 @@
 package org.bytecamp19.seckill4.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.PropertyNamingStrategy;
+import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import lombok.Data;
-import lombok.Getter;
 import org.bytecamp19.seckill4.cache.*;
 import org.bytecamp19.seckill4.entity.OrderIdWrapper;
 import org.bytecamp19.seckill4.entity.OrderResult;
 import org.bytecamp19.seckill4.entity.Order;
 import org.bytecamp19.seckill4.entity.Product;
 import org.bytecamp19.seckill4.error.ForbiddenException;
-import org.bytecamp19.seckill4.interceptor.costlogger.CostLogger;
 import org.bytecamp19.seckill4.mapper.OrderMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by LLAP on 2019/8/5.
@@ -40,19 +41,23 @@ public class OrderService {
     private InventoryManager inventoryManager;
     private RedisMessageQueue mq;
     private WebClient webClient;
+    private RedisTemplate<Object, Object> stringKeyRedisTemplate;
+    private ValueOperations<Object, Object> valueOperations;
     @Value("${app.tokenServer}")
     private String tokenServer;
     private static Random random = new Random();
 
     public OrderService(ProductService productService, OrderMapper orderMapper,
                         OrderLimitManager limitManager, InventoryManager inventoryManager,
-                        RedisMessageQueue mq) {
+                        RedisMessageQueue mq, RedisTemplate<Object, Object> stringKeyRedisTemplate) {
         this.productService = productService;
         this.orderMapper = orderMapper;
         this.limitManager = limitManager;
         this.inventoryManager = inventoryManager;
         this.mq = mq;
         this.webClient = WebClient.builder().build();
+        this.stringKeyRedisTemplate = stringKeyRedisTemplate;
+        this.valueOperations = stringKeyRedisTemplate.opsForValue();
     }
 
     /**
@@ -107,7 +112,7 @@ public class OrderService {
      * @throws ForbiddenException
      */
 //    @CostLogger(LEVEL = CostLogger.Level.ERROR)
-    public OrderMessage placeOrder(long uid, Product p) throws ForbiddenException {
+    public Order placeOrder(long uid, Product p) throws ForbiddenException {
         // Check limits
         int limit = limitManager.checkLimit(p.getPid(), uid);
         if (limit == -1) throw new ForbiddenException("Cannot check limits");
@@ -134,13 +139,23 @@ public class OrderService {
         logger.debug(mq.emit(ret) + " message emitted");
 
 //        Order order = new Order();
+//        order.setOrderId(orderId);
+//        order.setPid(p.getPid());
+//        order.setUid(uid);
+//        order.setPrice(p.getPrice());
+//        order.setStatus(Order.UNPAID);
+//        valueOperations.set("order:" + orderId, order);
+
+        Order order = new Order();
+        order.setOrderId(ret.getOrder_id());
+//        Order order = new Order();
 //        order.setOrder_id(orderId);
 //        order.setPid(p.getPid());
 //        order.setPrice(p.getPrice());
 //        order.setUid(uid);
 //        int rowCount = orderMapper.insert(order);
 //        if (rowCount != 1) throw new ForbiddenException("Cannot place order");
-        return ret;
+        return order;
     }
 
     /**
@@ -148,11 +163,6 @@ public class OrderService {
      * @param orderId order id wrapper
      * @return Order
      */
-    @Cacheable(
-            key = "'order:' + #orderId",
-            value = "orderCache",
-            cacheManager = "cacheManager"
-    )
     @DS("slave")
     public Order getOrder(OrderIdWrapper orderId) {
         QueryWrapper<Order> wrapper = new QueryWrapper<>();
@@ -161,6 +171,9 @@ public class OrderService {
         wrapper.eq("price", orderId.getPrice());
         wrapper.eq("pid", orderId.getPid());
         return orderMapper.selectOne(wrapper);
+//        Object o = valueOperations.get("order:" + orderId.getOrderId());
+//        if (o != null) return (Order)o;
+//        return null;
     }
 
     /**
@@ -190,10 +203,19 @@ public class OrderService {
      */
     public Order payOrder(OrderIdWrapper orderId) {
         Order o = getOrder(orderId);
+//        if (o != null) {
+//            if (o.getStatus() == Order.UNPAID) {
+//                o.setStatus(Order.PAID);
+//                o.setToken(getToken(orderId));
+//                valueOperations.set("order:" + orderId.getOrderId(), o);
+//            }
+//            return o;
+//        }
+//        else return null;
         if (o == null) {
             Order ret = new Order();
             ret.setStatus(Order.PAID);
-            ret.setOrder_id(orderId.getOrderId());
+            ret.setOrderId(orderId.getOrderId());
             // 手动获取token，返回并推送到redis
             String token = getToken(orderId);
             ret.setToken(token);
@@ -233,9 +255,47 @@ public class OrderService {
      * @param uid user id
      * @return a list of orders that the user has placed
      */
-    public List<OrderResult> getOrdersByUid(long uid) {
-        mq.waitForConsumer();
-        return orderMapper.getOrdersByUid(uid);
+    public List<OrderResult> getOrdersByUid(long uid) throws ForbiddenException {
+//        List<OrderResult> ret = new ArrayList<>();
+//        Set<Object> keys = stringKeyRedisTemplate.keys("order:*." + uid + ".*.*.*");
+//        List<Object> orders = valueOperations.multiGet(keys);
+//        if (orders != null) {
+//            for (Object o : orders) {
+//                Order order = (Order)o;
+//                OrderResult r = new OrderResult();
+//                r.setOrder_id(order.getOrderId());
+//                r.setPid(order.getPid());
+//                r.setUid(order.getUid());
+//                r.setPrice(order.getPrice());
+//                r.setStatus(order.getStatus());
+//                r.setToken(order.getStatus()==Order.PAID?order.getToken():"");
+//                r.setDetail(productService.getProduct(r.getPid()).getDetail());
+//            }
+//        }
+//        return ret;
+//        mq.waitForConsumer();
+////        return orderMapper.getOrdersByUid(uid);
+        List<OrderResult> ret = new ArrayList<>();
+        List<Order> orders = orderMapper.selectList(new QueryWrapper<Order>().eq("uid", uid));
+//        Set<Long> pidSet = new HashSet<>();
+//        Map<Long, Product> productMap = new TreeMap<>();
+//        QueryWrapper<Product> productQueryWrapper = new QueryWrapper<>();
+//        productQueryWrapper.eq("pid", -1);
+        for (Order o : orders) {
+                Product p = productService.getProduct(o.getPid());
+                OrderResult r = new OrderResult();
+                r.setOrder_id(o.getOrderId());
+                r.setPid(o.getPid());
+                r.setUid(o.getUid());
+                r.setPrice(o.getPrice());
+                r.setStatus(o.getStatus());
+                r.setToken(o.getStatus()==Order.PAID?o.getToken():"");
+                r.setDetail(p.getDetail());
+                ret.add(r);
+
+
+        }
+        return ret;
     }
 
     /**
@@ -254,5 +314,6 @@ public class OrderService {
         // Clear orders table
         orderMapper.delete(null);
         mq.clear();
+//        stringKeyRedisTemplate.delete(stringKeyRedisTemplate.keys("order:*"));
     }
 }

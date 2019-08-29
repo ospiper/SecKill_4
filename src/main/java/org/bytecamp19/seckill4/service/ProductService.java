@@ -20,6 +20,8 @@ import org.springframework.data.redis.core.SetOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
  * Created by LLAP on 2019/8/4.
  * Copyright (c) 2019 L. Xiao, F. Baoren, L. Yangzhou. All rights reserved.
@@ -43,7 +45,7 @@ public class ProductService {
 //            value = "productCache",
 //            cacheManager = "cacheManager"
 //    )
-    @CostLogger(LEVEL = CostLogger.Level.WARN)
+//    @CostLogger(LEVEL = CostLogger.Level.DEBUG)
     @DS("slave")
     public Product getProduct(long pid) throws ForbiddenException {
         LayeringCache cache = (LayeringCache)cacheManager.getCache("productCache");
@@ -55,7 +57,7 @@ public class ProductService {
             if (ret == null) {
                 long start = System.currentTimeMillis();
                 ret = productMapper.selectById(pid);
-                logger.warn("SQL query {} ms", (System.currentTimeMillis() - start));
+                logger.debug("SQL query {} ms", (System.currentTimeMillis() - start));
                 if (ret != null) {
                     cache.put("product:" + pid, ret);
                 }
@@ -70,5 +72,16 @@ public class ProductService {
             else ret.setCount(inv.intValue());
         }
         return ret;
+    }
+
+    public void prepare() {
+        LayeringCache cache = (LayeringCache)cacheManager.getCache("productCache");
+        for (int i = 0; i < 1000; ++i) {
+            logger.info("Caching part " + i);
+            List<Product> products = productMapper.selectPartitionedProducts(i);
+            for (Product p : products) {
+                cache.put("product:" + p.getPid(), p);
+            }
+        }
     }
 }

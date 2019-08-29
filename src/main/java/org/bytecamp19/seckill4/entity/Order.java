@@ -1,5 +1,6 @@
 package org.bytecamp19.seckill4.entity;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -17,17 +18,18 @@ public class Order implements Serializable {
     public static final int PAID = 1;
 
     @TableId
-    private String order_id;
-    private long uid;
-    private long pid;
-    private int price;
-    private int status = 0;
-    private String token;
+    @JSONField(name = "order_id")
+    protected String orderId;
+    protected long uid;
+    protected long pid;
+    protected int price;
+    protected int status = 0;
+    protected String token;
 
     @Override
     public String toString() {
         return "Order{" +
-                "order_id='" + order_id + '\'' +
+                "order_id='" + orderId + '\'' +
                 ", uid=" + uid +
                 ", pid=" + pid +
                 ", price=" + price +

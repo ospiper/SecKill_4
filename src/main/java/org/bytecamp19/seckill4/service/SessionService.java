@@ -13,6 +13,7 @@ import org.springframework.cache.Cache;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +31,7 @@ public class SessionService {
     private LayeringCacheManager cacheManager;
     private RedisTemplate<Object, Long> stringLongRedisTemplate;
     private HashOperations<Object, Object, Long> hashOperations;
+    private ValueOperations<Object, Long> valueOperations;
     private static final String hashName = "sessionCache";
 
     public SessionService(SessionMapper sessionMapper, LayeringCacheManager cacheManager,
@@ -38,6 +40,7 @@ public class SessionService {
         this.cacheManager = cacheManager;
         this.stringLongRedisTemplate = stringLongRedisTemplate;
         this.hashOperations = stringLongRedisTemplate.opsForHash();
+        this.valueOperations = stringLongRedisTemplate.opsForValue();
     }
 
 //    @CostLogger(LEVEL = CostLogger.Level.WARN)
@@ -63,27 +66,36 @@ public class SessionService {
 //        }
 //        return ret;
 //    }
-    @CostLogger(LEVEL = CostLogger.Level.WARN)
-    @DS("slave")
+//    @CostLogger(LEVEL = CostLogger.Level.DEBUG)
+//    @DS("slave")
+//    public Session getSession(String sessionid) {
+//        Long uid = hashOperations.get(hashName, sessionid);
+//        if (uid == null) {
+//            Session ret = sessionMapper.selectOne(
+//                    new QueryWrapper<Session>()
+//                        .eq("sessionid", sessionid)
+//            );
+//            if (ret != null) {
+//                hashOperations.put(hashName, sessionid, ret.getUid());
+//                return ret;
+//            }
+//            else return null;
+//        }
+//        else {
+//            Session ret = new Session();
+//            ret.setSessionid(sessionid);
+//            ret.setUid(uid);
+//            return ret;
+//        }
+//    }
+
     public Session getSession(String sessionid) {
-        Long uid = hashOperations.get(hashName, sessionid);
-        if (uid == null) {
-            Session ret = sessionMapper.selectOne(
-                    new QueryWrapper<Session>()
-                        .eq("sessionid", sessionid)
-            );
-            if (ret != null) {
-                hashOperations.put(hashName, sessionid, ret.getUid());
-                return ret;
-            }
-            else return null;
-        }
-        else {
-            Session ret = new Session();
-            ret.setSessionid(sessionid);
-            ret.setUid(uid);
-            return ret;
-        }
+        Long uid = valueOperations.get("session:" + sessionid);
+        if (uid == null) return null;
+        Session session = new Session();
+        session.setUid(uid);
+        session.setSessionid(sessionid);
+        return session;
     }
 
 }

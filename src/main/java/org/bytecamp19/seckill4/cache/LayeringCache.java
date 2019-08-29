@@ -78,7 +78,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         long start = System.currentTimeMillis();
         Object value = lookup(key);
         if(value != null) {
-            logger.error("Cache hit " + (System.currentTimeMillis() - start) + " ms");
+            logger.debug("Cache hit " + (System.currentTimeMillis() - start) + " ms");
             return new SimpleValueWrapper(value);
         }
 
@@ -94,7 +94,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
                 lock.lock();
                 value = lookup(key);
                 if (value != null) {
-                    logger.error("Cache hit " + (System.currentTimeMillis() - start) + " ms");
+                    logger.debug("Cache hit " + (System.currentTimeMillis() - start) + " ms");
                     return new SimpleValueWrapper(value);
                 }
 
@@ -106,7 +106,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
                 lock.unlock();
             }
         }
-        logger.error("Cache miss {} ms", (System.currentTimeMillis() - start));
+        logger.debug("Cache miss {} ms", (System.currentTimeMillis() - start));
         return ret;
     }
 
@@ -117,7 +117,7 @@ public class LayeringCache extends AbstractValueAdaptingCache {
         long start = System.currentTimeMillis();
         Object value = lookup(key);
         if(value != null) {
-            logger.error("Cache hit " + (System.currentTimeMillis() - start) + " ms");
+            logger.debug("Cache hit " + (System.currentTimeMillis() - start) + " ms");
             return (T) value;
         }
 
@@ -132,13 +132,13 @@ public class LayeringCache extends AbstractValueAdaptingCache {
             lock.lock();
             value = lookup(key);
             if(value != null) {
-                logger.error("Cache hit " + (System.currentTimeMillis() - start) + " ms");
+                logger.debug("Cache hit " + (System.currentTimeMillis() - start) + " ms");
                 return (T) value;
             }
             value = valueLoader.call();
             Object storeValue = toStoreValue(value);
             put(key, storeValue);
-            logger.error("Cache set " + (System.currentTimeMillis() - start) + " ms");
+            logger.debug("Cache set " + (System.currentTimeMillis() - start) + " ms");
             return (T) value;
         } catch (Exception e) {
             throw new ValueRetrievalException(key, valueLoader, e.getCause());

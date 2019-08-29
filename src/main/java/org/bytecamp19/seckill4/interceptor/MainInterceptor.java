@@ -26,10 +26,12 @@ public class MainInterceptor implements HandlerInterceptor {
     private static final Pattern md5 = Pattern.compile("^([a-fA-F0-9]{32})$");
     private Logger logger = LoggerFactory.getLogger(MainInterceptor.class);
 
-    @CostLogger(LEVEL = CostLogger.Level.DEBUG)
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 //        logger.debug("Prehandling " + request.getRequestURI());
+//        response.setStatus(403);
+//        return false;
+//        return true;
         logger.info(request.getMethod() + " " + request.getRequestURI());
         String ip = request.getHeader("x-forwarded-for").split(",")[0].trim();
         String ua = request.getHeader("user-agent");

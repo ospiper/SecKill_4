@@ -79,8 +79,8 @@ public class OrderTest {
         Product product = productService.getProduct(pid);
         System.out.println(product);
         try {
-            OrderMessage message = orderService.placeOrder(uid, product);
-            OrderMessage m2 = orderService.placeOrder(uid, product);
+            Order message = orderService.placeOrder(uid, product);
+            Order m2 = orderService.placeOrder(uid, product);
             assertNull(m2);
             System.out.println(message);
         }
@@ -102,9 +102,9 @@ public class OrderTest {
     public void unWrittenPayTest() throws ForbiddenException {
         Product product = productService.getProduct(pid);
         try {
-            OrderMessage message = orderService.placeOrder(uid, product);
+            Order message = orderService.placeOrder(uid, product);
             System.out.println(message);
-            OrderIdWrapper wrapper = new OrderIdWrapper(message.getOrder_id());
+            OrderIdWrapper wrapper = new OrderIdWrapper(message.getOrderId());
             Order o = orderService.payOrder(wrapper);
             System.out.println(o);
         }
