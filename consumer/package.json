@@ -5,7 +5,7 @@
   "private": true,
   "main": "consumer.js",
   "dependencies": {
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "pg": "^7.12.1",
     "redis": "^2.8.0",
     "redis-clustr": "^1.7.0"
